@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "769131006897",
+    "project_id": "meet-my-pets",
+    "storage_bucket": "meet-my-pets.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:769131006897:android:e7c93b2c6997cad0b24b90",
+        "android_client_info": {
+          "package_name": "com.example.meetmypets"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "769131006897-00tp65rs5r927mss6u7k5io1sm9o707k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCqwBDIgYd42oXxjuqXEHX7408cwn2Qfxg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "769131006897-00tp65rs5r927mss6u7k5io1sm9o707k.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
