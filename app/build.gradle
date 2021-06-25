@@ -37,17 +37,25 @@ dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.google.firebase:firebase-auth:21.0.1'
     implementation 'com.google.firebase:firebase-database:20.0.0'
+    implementation 'com.google.firebase:firebase-storage:20.0.0'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
+    implementation 'androidx.annotation:annotation:1.2.0'
 
     //google map
-    implementation 'com.google.android.gms:play-services-maps:17.0.0'
+    implementation 'com.google.android.gms:play-services-maps:17.0.1'
     implementation 'com.google.android.gms:play-services-location:18.0.0'
     //recyclerview
     implementation "androidx.recyclerview:recyclerview:1.2.1"
+
+    //TODO eli - you dont need it if you make good adapter {
+
     // For control over item selection of both touch and mouse driven selection
     implementation "androidx.recyclerview:recyclerview-selection:1.1.0"
+//  }
 
     // SmoothBottomBar
     implementation 'com.github.ibrahimsn98:SmoothBottomBar:1.7.6'
@@ -57,7 +65,6 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
 
     //Crop images
-//    implementation 'com.github.yalantis:ucrop:2.2.3-native'
     implementation 'com.theartofdev.edmodo:android-image-cropper:2.8.0'
 
 }

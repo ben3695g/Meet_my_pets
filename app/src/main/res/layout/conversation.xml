@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragments.CurrentMeeting">
+
+    <RelativeLayout
+        android:id="@+id/rlConversation"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@drawable/background_top">
+
+        <TextView
+            android:id="@+id/tvConversationWith"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:text="string/string"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+    </RelativeLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvChats"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/rlBottom"
+        android:layout_below="@id/rlConversation" />
+
+
+    <RelativeLayout
+        android:id="@+id/rlBottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="#fff"
+        android:padding="5dp">
+
+
+        <EditText
+            android:id="@+id/etMessageText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="10dp"
+            android:layout_toStartOf="@+id/btn_send"
+            android:background="@android:color/transparent"
+            android:hint="string/type_a_message"
+            android:inputType="textMultiLine"
+            android:textSize="18sp"
+            android:autofillHints="" />
+
+        <RelativeLayout
+            android:id="@+id/btn_send"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentEnd="true"
+            android:background="@drawable/back_fab"
+            android:elevation="4dp">
+
+            <ImageView
+                android:id="@+id/ivFab"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_centerInParent="true"
+                android:contentDescription="@string/none"
+                android:src="@android:drawable/ic_media_play"
+ />
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+
+</RelativeLayout>
