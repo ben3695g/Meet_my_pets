@@ -25,6 +25,11 @@ public class MeetingListFragment extends Fragment {
 
     private ListActionCallback callback;
     private RecyclerViewAdapter recyclerViewAdapter;
+    private List<Meeting> chosenMeetings;
+
+    public MeetingListFragment(){
+        recyclerViewAdapter = new RecyclerViewAdapter();
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -49,9 +54,7 @@ public class MeetingListFragment extends Fragment {
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         //static users id list initialization
-        List<String> users = new ArrayList<String>();
-        users.add("a");
-        users.add("aa");
+
 
         orderByName.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -77,33 +80,35 @@ public class MeetingListFragment extends Fragment {
 
         // 1) create or acquire Model
         // static meetings list initialization
-        List<Meeting> meetings = new ArrayList<>();
-        meetings.add(new Meeting("a", users,1500));
-        meetings.add(new Meeting("b", users,200));
-        meetings.add(new Meeting("c", users,10));
-        meetings.add(new Meeting("d", users,10111));
-        meetings.add(new Meeting("e", users,1990));
-        meetings.add(new Meeting("f", users,30));
-        meetings.add(new Meeting("a", users,1500));
-        meetings.add(new Meeting("b", users,200));
-        meetings.add(new Meeting("c", users,10));
-        meetings.add(new Meeting("d", users,10111));
-        meetings.add(new Meeting("e", users,1990));
-        meetings.add(new Meeting("f", users,30));
-        meetings.add(new Meeting("a", users,1500));
-        meetings.add(new Meeting("b", users,200));
-        meetings.add(new Meeting("c", users,10));
-        meetings.add(new Meeting("d", users,10111));
-        meetings.add(new Meeting("e", users,1990));
-        meetings.add(new Meeting("f", users,30));
+//        List<String> users = new ArrayList<String>();
+//        users.add("a");
+//        users.add("aa");
+//        List<Meeting> meetings = new ArrayList<>();
+//        meetings.add(new Meeting("a", users,1500));
+//        meetings.add(new Meeting("b", users,200));
+//        meetings.add(new Meeting("c", users,10));
+//        meetings.add(new Meeting("d", users,10111));
+//        meetings.add(new Meeting("e", users,1990));
+//        meetings.add(new Meeting("f", users,30));
+//        meetings.add(new Meeting("a", users,1500));
+//        meetings.add(new Meeting("b", users,200));
+//        meetings.add(new Meeting("c", users,10));
+//        meetings.add(new Meeting("d", users,10111));
+//        meetings.add(new Meeting("e", users,1990));
+//        meetings.add(new Meeting("f", users,30));
+//        meetings.add(new Meeting("a", users,1500));
+//        meetings.add(new Meeting("b", users,200));
+//        meetings.add(new Meeting("c", users,10));
+//        meetings.add(new Meeting("d", users,10111));
+//        meetings.add(new Meeting("e", users,1990));
+//        meetings.add(new Meeting("f", users,30));
 
         // 2) Create logic class (View Model)
 
-        recyclerViewAdapter = new RecyclerViewAdapter(meetings);
         recyclerViewAdapter.setListener(new RecyclerViewAdapter.MyMeetingListener() {
             @Override
             public void onMeetingClicked(int position, View view) {
-                Toast.makeText(getActivity(), meetings.get(position).getMeetingName(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), chosenMeetings.get(position).getMeetingName(), Toast.LENGTH_SHORT).show();
                 callback.onButtonMeetingClicked(false);
             }
         });
@@ -130,4 +135,8 @@ public class MeetingListFragment extends Fragment {
         callback = null;
     }
 
+    public void getMeetingList(List<Meeting> meetings){
+        chosenMeetings = meetings;
+        recyclerViewAdapter.refreshMeetingsList(chosenMeetings);
+    }
 }

@@ -13,13 +13,13 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
 import android.view.View;
 
+import com.example.meetmypets.Meeting;
 import com.example.meetmypets.R;
-import com.example.meetmypets.ViewPagerAdapter;
-import com.example.meetmypets.fragments.CreateMeetingFragment;
 import com.example.meetmypets.fragments.MeetingListFragment;
 import com.example.meetmypets.fragments.SettingsFragment;
 import com.example.meetmypets.fragments.Splash;
@@ -35,12 +35,14 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import me.ibrahimsn.lib.SmoothBottomBar;
 
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, MeetingListFragment.ListActionCallback, OnMapReadyCallback {
 
     private MeetingListFragment listFragment;
-    private  ViewPagerAdapter pagerAdapter;
     private SupportMapFragment mapFragment;
     private GoogleMap map;
     final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -60,10 +62,19 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     new String[] { Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION },
                     MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
-        pagerAdapter = new ViewPagerAdapter(this);
         final SmoothBottomBar smoothBottomBar = findViewById(R.id.bottomBar);
         smoothBottomBar.setVisibility(View.INVISIBLE);
         listFragment = new MeetingListFragment();
+
+        // temporary simulation of async call for DB
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                getMeetingsListFromFireBase();
+            }
+        }, 3000);
+
+
         mapFragment = SupportMapFragment.newInstance();
 
         getSupportFragmentManager().beginTransaction().add(R.id.mainLayout, new Splash(listFragment),"splash").commit();
@@ -79,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     hookupLocation();
                     break;
                 case 2:
-                    handleFragment(new SettingsFragment(), "Settings");
+                    handleFragment(new SettingsFragment(), "Settings");//LogInFragment
                     break;
             }
             return false;
@@ -185,13 +196,32 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     public void applyCurrentLocation(Location location) {
         if (location != null && isMapReady) {
             LatLng point = new LatLng(location.getLatitude(), location.getLongitude());
-
-//            if (!isParent && parent != null){
-//                dbRef.child(PARENTS).child(parent).child(KIDS).child(user).child("location").setValue(point);
-//            }
-
-            // createMarker(point, R.drawable.parenticon, user, 100);
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(point, 15));
         }
     }
+     public void getMeetingsListFromFireBase(){
+         List<String> users = new ArrayList<String>();
+         users.add("a");
+         users.add("aa");
+         List<Meeting> meetings = new ArrayList<>();
+         meetings.add(new Meeting("a", users,1500));
+         meetings.add(new Meeting("b", users,200));
+         meetings.add(new Meeting("c", users,10));
+         meetings.add(new Meeting("d", users,10111));
+         meetings.add(new Meeting("e", users,1990));
+         meetings.add(new Meeting("f", users,30));
+         meetings.add(new Meeting("a", users,1500));
+         meetings.add(new Meeting("b", users,200));
+         meetings.add(new Meeting("c", users,10));
+         meetings.add(new Meeting("d", users,10111));
+         meetings.add(new Meeting("e", users,1990));
+         meetings.add(new Meeting("f", users,30));
+         meetings.add(new Meeting("a", users,1500));
+         meetings.add(new Meeting("b", users,200));
+         meetings.add(new Meeting("c", users,10));
+         meetings.add(new Meeting("d", users,10111));
+         meetings.add(new Meeting("e", users,1990));
+         meetings.add(new Meeting("f", users,30));
+         listFragment.getMeetingList(meetings);
+     }
 }

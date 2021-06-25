@@ -1,32 +1,27 @@
 package com.example.meetmypets;
 
-import android.location.Location;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.MeetingViewHolder> {
-    private List<Meeting> meetings;
+    private List<Meeting> chosenMeetings;
     private MyMeetingListener listener;
 
     public interface MyMeetingListener {
         void onMeetingClicked(int position,View view);
     }
 
-    public RecyclerViewAdapter(List<Meeting> meetings) {
-        this.meetings = meetings;
+    public RecyclerViewAdapter() {
+
     }
 
     public void setListener(MyMeetingListener listener) {
@@ -73,26 +68,32 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     @Override
     public void onBindViewHolder(@NonNull MeetingViewHolder holder, int position) {
-        Meeting meeting = meetings.get(position);
+        Meeting meeting = chosenMeetings.get(position);
         holder.meetingName.setText(meeting.meetingName);
         holder.meetingUsers.setText("users:" + meeting.subscribedUserIds.size());
       //  holder.meetingImage.setImageBitmap(meeting.meetingImage);//holder.meetingImage.setImageResource(meeting.get
         holder.meetingDistance.setText(meeting.distance + "m");
-
     }
 
     @Override
     public int getItemCount() {
-        return meetings.size();
+        return chosenMeetings != null ? chosenMeetings.size() : 0;
     }
 
     public void orderByName(){
-        this.meetings = meetings.stream().sorted((x,y)-> x.getMeetingName().compareTo(y.getMeetingName())).collect(Collectors.toList());
+        if (chosenMeetings == null) return;
+        this.chosenMeetings = chosenMeetings.stream().sorted((x, y)-> x.getMeetingName().compareTo(y.getMeetingName())).collect(Collectors.toList());
         notifyDataSetChanged();
     }
 
     public void orderByDistance(){
-        this.meetings = meetings.stream().sorted((x,y)-> Integer.compare(x.getDistance(),y.getDistance())).collect(Collectors.toList());
+        if (chosenMeetings == null) return;
+        this.chosenMeetings = chosenMeetings.stream().sorted((x, y)-> Integer.compare(x.getDistance(),y.getDistance())).collect(Collectors.toList());
+        notifyDataSetChanged();
+    }
+
+    public void refreshMeetingsList(List<Meeting> meetings){
+        chosenMeetings =meetings;
         notifyDataSetChanged();
     }
 }
