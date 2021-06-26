@@ -70,7 +70,7 @@ public class LoginFragment extends Fragment {
         sp = PreferenceManager.getDefaultSharedPreferences(context);
         etEmail = view.findViewById(R.id.etEmail);
         etPassword = view.findViewById(R.id.etPassword);
-        btnLogin = view.findViewById(R.id.btnLogin);
+        btnLogin = view.findViewById(R.id.button);
         TextView tvRegister = view.findViewById(R.id.tvRegister);
         TextView tvForgotPassword = view.findViewById(R.id.tvForgotPassword);
 
