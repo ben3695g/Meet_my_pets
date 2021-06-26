@@ -54,8 +54,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private FusedLocationProviderClient fusedLocationClient;
     private Location userLocation;
-    private boolean userIsLoggedIn, isMapReady,firstMapLoad=false;
-    private Map<String, Marker> meetingsMarkersMap = new HashMap<>();
+    private boolean userIsLoggedIn, isMapReady, isMapLoaded =false, isCameraMoved =false;
     private  List<Meeting> mapFragmentMeetings;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,10 +93,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     handleFragment(listFragment,"Meetings");
                     break;
                 case 1:
+                    isCameraMoved =false;
                     handleFragment(mapFragment, "Map");
                     mapFragment.getMapAsync(this);
-                    hookupLocation();
+                    if (!isMapLoaded){
 
+                        hookupLocation();
+                        isMapLoaded =true;
+                    }
                     break;
                 case 2:
                     handleFragment(new SettingsFragment(), "Settings");//LogInFragment
@@ -132,6 +135,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         refreshMarkers();
         googleMap.setOnInfoWindowClickListener(this);
 
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(map.getCameraPosition().target, 15));
     }
     @SuppressLint("MissingPermission")//Permission check invoked at MainActivity
     private void enableMyLocation() {
@@ -181,12 +185,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
                 Location chosenLocation = null;
                 for (Location location : locationResult.getLocations()) {
-
-
-                    if (chosenLocation == null || chosenLocation.getAccuracy() > location.getAccuracy())
+                    if (chosenLocation == null || chosenLocation.getAccuracy() > location.getAccuracy()) {
                         chosenLocation = location;
-
+                    }
                 }
+
                 applyCurrentLocation(chosenLocation);
                 userLocation = chosenLocation;
 
@@ -212,10 +215,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         });
     }
     public void applyCurrentLocation(Location location) {
-        if (location != null && isMapReady && !firstMapLoad) {
+        if (location != null && isMapReady) {
             LatLng point = new LatLng(location.getLatitude(), location.getLongitude());
-            firstMapLoad =true;
-            map.moveCamera(CameraUpdateFactory.newLatLngZoom(point, 15));
+
+            if (!isCameraMoved) {
+                map.moveCamera(CameraUpdateFactory.newLatLngZoom(point, 15));
+                isCameraMoved = true;
+            }
         }
     }
     private void refreshMarkers() {
@@ -251,19 +257,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
 
     private void createMarker(Meeting meeting, int iconSize,int iconId,LatLng point) {
-        Marker marker = meetingsMarkersMap.getOrDefault(meeting.getMeetingName(), null);
         BitmapDescriptor icon = createIcon(iconId, iconSize);
-        if (marker == null){
-            marker = map.addMarker(new MarkerOptions().position(point).title( " meeting name: "+meeting.getMeetingName()).snippet("number of users: "+meeting.getSubscribedUserIds().size()+ "\ndistance:"+meeting.getDistance()).icon(icon));
-            meetingsMarkersMap.put(meeting.getMeetingName(), marker);
-            marker.showInfoWindow();
-
-        }
-        else {
-            marker.setPosition(point);
-            marker.setIcon(icon);
-        }
-
+        Marker marker = map.addMarker(new MarkerOptions().position(point).title( " meeting name: "+meeting.getMeetingName()).snippet("number of users: "+meeting.getSubscribedUserIds().size()+ "\ndistance:"+meeting.getDistance()).icon(icon));
+        marker.showInfoWindow();
     }
 
     @Override
@@ -326,24 +322,24 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
          //new Location((31.776507546255935, 34.62478162343042));
          List<Meeting> meetings = new ArrayList<>();
-         meetings.add(new Meeting("a", users,1500,point1));
-         meetings.add(new Meeting("b", users,200,point2));
-         meetings.add(new Meeting("c", users,10,point3));
-         meetings.add(new Meeting("d", users,10111,point4));
-         meetings.add(new Meeting("e", users,1990,point5));
-         meetings.add(new Meeting("f", users,30,point6));
-         meetings.add(new Meeting("a", users,1500,point7));
-         meetings.add(new Meeting("b", users,200,point8));
-         meetings.add(new Meeting("c", users,10,point9));
-         meetings.add(new Meeting("d", users,10111,point10));
-         meetings.add(new Meeting("e", users,1990,point11));
-         meetings.add(new Meeting("f", users,30,point12));
-         meetings.add(new Meeting("a", users,1500,point13));
-         meetings.add(new Meeting("b", users,200,point14));
-         meetings.add(new Meeting("c", users,10,point15));
-         meetings.add(new Meeting("d", users,10111,point16));
-         meetings.add(new Meeting("e", users,1990,point17));
-         meetings.add(new Meeting("f", users,30,point18));
+         meetings.add(new Meeting("a1", users,1500,point1));
+         meetings.add(new Meeting("b2", users,200,point2));
+         meetings.add(new Meeting("c3", users,10,point3));
+         meetings.add(new Meeting("d4", users,10111,point4));
+         meetings.add(new Meeting("e5", users,1990,point5));
+         meetings.add(new Meeting("f6", users,30,point6));
+         meetings.add(new Meeting("a7", users,1500,point7));
+         meetings.add(new Meeting("b8", users,200,point8));
+         meetings.add(new Meeting("c9", users,10,point9));
+         meetings.add(new Meeting("d10", users,10111,point10));
+         meetings.add(new Meeting("e11", users,1990,point11));
+         meetings.add(new Meeting("f12", users,30,point12));
+         meetings.add(new Meeting("a13", users,1500,point13));
+         meetings.add(new Meeting("b14", users,200,point14));
+         meetings.add(new Meeting("c15", users,10,point15));
+         meetings.add(new Meeting("d16", users,10111,point16));
+         meetings.add(new Meeting("e117", users,1990,point17));
+         meetings.add(new Meeting("f18", users,30,point18));
          mapFragmentMeetings =meetings;
          listFragment.getMeetingList(meetings);
 
