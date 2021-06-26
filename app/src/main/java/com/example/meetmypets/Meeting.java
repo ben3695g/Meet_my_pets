@@ -1,6 +1,9 @@
 package com.example.meetmypets;
 
 import android.graphics.Bitmap;
+import android.location.Location;
+
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.List;
 
@@ -11,14 +14,16 @@ public class Meeting {
     List<String> subscribedUserIds;
     List<String> usersNoNotifications;
     Bitmap meetingImage;
+    LatLng meetingLocation;
     int distance;
     String adminId;
     Boolean enablePassword;
     String meetingPassword;
 
-    public Meeting(String meetingName, List<String> subscribedUserIds, int distance) {
+    public Meeting(String meetingName, List<String> subscribedUserIds, int distance, LatLng meetingLocation) {
         this.meetingName = meetingName;
         this.subscribedUserIds = subscribedUserIds;
+        this.meetingLocation = meetingLocation;
         this.distance = distance;
     }
 
@@ -33,6 +38,10 @@ public class Meeting {
 //        this.enablePassword = enablePassword;
 //        this.meetingPassword = meetingPassword;
 //    }
+
+    public LatLng getMeetingLocation() {
+        return meetingLocation;
+    }
 
     public String getMeetingId() {
         return meetingId;

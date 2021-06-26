@@ -1,7 +1,5 @@
 package com.example.meetmypets.activities;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
@@ -9,14 +7,16 @@ import androidx.fragment.app.FragmentTransaction;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.AttributeSet;
 import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.meetmypets.Meeting;
 import com.example.meetmypets.R;
@@ -32,23 +32,31 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import me.ibrahimsn.lib.SmoothBottomBar;
 
-public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, MeetingListFragment.ListActionCallback, OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback,GoogleMap.OnInfoWindowClickListener, MeetingListFragment.ListActionCallback, OnMapReadyCallback {
 
     private MeetingListFragment listFragment;
     private SupportMapFragment mapFragment;
     private GoogleMap map;
     final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private FusedLocationProviderClient fusedLocationClient;
-    private Location location;
-    private boolean userIsLoggedIn, isMapReady;
+    private Location userLocation;
+    private boolean userIsLoggedIn, isMapReady,firstMapLoad=false;
+    private Map<String, Marker> meetingsMarkersMap = new HashMap<>();
+    private  List<Meeting> mapFragmentMeetings;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             @Override
             public void run() {
                 getMeetingsListFromFireBase();
+
             }
         }, 3000);
 
@@ -88,6 +97,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     handleFragment(mapFragment, "Map");
                     mapFragment.getMapAsync(this);
                     hookupLocation();
+
                     break;
                 case 2:
                     handleFragment(new SettingsFragment(), "Settings");//LogInFragment
@@ -119,6 +129,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         map = googleMap;
         isMapReady=true;
         enableMyLocation();
+        refreshMarkers();
+        googleMap.setOnInfoWindowClickListener(this);
+
     }
     @SuppressLint("MissingPermission")//Permission check invoked at MainActivity
     private void enableMyLocation() {
@@ -168,11 +181,15 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 }
                 Location chosenLocation = null;
                 for (Location location : locationResult.getLocations()) {
+
+
                     if (chosenLocation == null || chosenLocation.getAccuracy() > location.getAccuracy())
                         chosenLocation = location;
+
                 }
-                location = chosenLocation;
                 applyCurrentLocation(chosenLocation);
+                userLocation = chosenLocation;
+
             }
         };
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -187,41 +204,148 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         fusedLocationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
             @Override
             public void onSuccess(Location loc) {
-                location = loc;
+                userLocation = loc;
                 // Got last known location. In some rare situations this can be null.
                 applyCurrentLocation(loc);
+
             }
         });
     }
     public void applyCurrentLocation(Location location) {
-        if (location != null && isMapReady) {
+        if (location != null && isMapReady && !firstMapLoad) {
             LatLng point = new LatLng(location.getLatitude(), location.getLongitude());
+            firstMapLoad =true;
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(point, 15));
         }
     }
+    private void refreshMarkers() {
+        if (map != null && mapFragmentMeetings != null) {
+            for (Meeting meeting :  mapFragmentMeetings) {
+
+
+                //icon
+                LatLng latLng = meeting.getMeetingLocation();
+//                Child kid = entry.getValue();
+                createMarker(meeting,100,  R.drawable.childicon , latLng);
+            }
+//            for (Map.Entry<String, Child> entry : kids.entrySet()) {
+//                String kidName = entry.getKey();
+//                Child kid = entry.getValue();
+//                createMarker(kid.location.toLatLng(), kid.alarm ? R.drawable.alarmedchildicon : R.drawable.childicon, kidName, 80);
+//            }
+        }
+    }
+
+    private BitmapDescriptor createIcon(int iconId, int iconSize) {
+        int height = iconSize;
+        int width = iconSize;
+
+        BitmapDrawable bitmapdraw = (BitmapDrawable)getResources().getDrawable(iconId);
+
+        Bitmap b = bitmapdraw.getBitmap();
+
+        Bitmap smallMarker = Bitmap.createScaledBitmap(b, width, height, false);
+
+        return BitmapDescriptorFactory.fromBitmap(smallMarker);
+    }
+
+
+    private void createMarker(Meeting meeting, int iconSize,int iconId,LatLng point) {
+        Marker marker = meetingsMarkersMap.getOrDefault(meeting.getMeetingName(), null);
+        BitmapDescriptor icon = createIcon(iconId, iconSize);
+        if (marker == null){
+            marker = map.addMarker(new MarkerOptions().position(point).title( " meeting name: "+meeting.getMeetingName()).snippet("number of users: "+meeting.getSubscribedUserIds().size()+ "\ndistance:"+meeting.getDistance()).icon(icon));
+            meetingsMarkersMap.put(meeting.getMeetingName(), marker);
+            marker.showInfoWindow();
+
+        }
+        else {
+            marker.setPosition(point);
+            marker.setIcon(icon);
+        }
+
+    }
+
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+        Toast.makeText(this, marker.getTitle() +" Info window clicked",
+                Toast.LENGTH_SHORT).show();
+    }
+
+
+    class Yourcustominfowindowadpater implements GoogleMap.InfoWindowAdapter {
+        private final View mymarkerview;
+
+        Yourcustominfowindowadpater() {
+            mymarkerview = getLayoutInflater()
+                    .inflate(R.layout.custom_info_window, null);
+        }
+
+        public View getInfoWindow(Marker marker) {
+            render(marker, mymarkerview);
+            return mymarkerview;
+        }
+
+        public View getInfoContents(Marker marker) {
+            return null;
+        }
+
+        private void render(Marker marker, View view) {
+            // Add the code to set the required values
+            // for each element in your custominfowindow layout file
+            TextView title =view.findViewById(R.id.title);
+            TextView snippet =view.findViewById(R.id.snippet);
+        }
+    }
+
+
      public void getMeetingsListFromFireBase(){
          List<String> users = new ArrayList<String>();
          users.add("a");
          users.add("aa");
+         LatLng point1 = new LatLng(31.776507546255935, 34.62478162343042);
+         LatLng point2 = new LatLng(31.775506291568767, 34.6270703705988);
+         LatLng point3 = new LatLng(31.775144063934704, 34.63015265240772);
+         LatLng point4 = new LatLng(31.775790297015536, 34.62912524059108);
+         LatLng point5 = new LatLng(31.772750968373543, 34.63018607123547);
+         LatLng point6 = new LatLng(31.769555361922798, 34.624096677629794);
+         LatLng point7 = new LatLng(31.780400396831684, 34.62671999065109);
+         LatLng point8 = new LatLng(31.772459825243235, 34.623077619318515);
+         LatLng point9 = new LatLng(31.78410689193512, 34.63183210435391);
+         LatLng point10 = new LatLng(31.78288560817526, 34.62245156086419);
+         LatLng point11 = new LatLng(31.783684597813586, 34.62356374127263);
+         LatLng point12 = new LatLng(31.768694958076537, 34.62949570367687);
+         LatLng point13 = new LatLng(31.77628097704576, 34.642746431905756);
+         LatLng point14 = new LatLng(31.77851285073171, 34.63689206480455);
+         LatLng point15 = new LatLng(31.77438521863641, 34.6299922798979);
+         LatLng point16 = new LatLng(31.773634667633004, 34.63496384552723);
+         LatLng point17 = new LatLng(31.7684601205635, 34.626252256015185);
+         LatLng point18 = new LatLng(31.77009916536245, 34.62246552296086);
+
+
+
+         //new Location((31.776507546255935, 34.62478162343042));
          List<Meeting> meetings = new ArrayList<>();
-         meetings.add(new Meeting("a", users,1500));
-         meetings.add(new Meeting("b", users,200));
-         meetings.add(new Meeting("c", users,10));
-         meetings.add(new Meeting("d", users,10111));
-         meetings.add(new Meeting("e", users,1990));
-         meetings.add(new Meeting("f", users,30));
-         meetings.add(new Meeting("a", users,1500));
-         meetings.add(new Meeting("b", users,200));
-         meetings.add(new Meeting("c", users,10));
-         meetings.add(new Meeting("d", users,10111));
-         meetings.add(new Meeting("e", users,1990));
-         meetings.add(new Meeting("f", users,30));
-         meetings.add(new Meeting("a", users,1500));
-         meetings.add(new Meeting("b", users,200));
-         meetings.add(new Meeting("c", users,10));
-         meetings.add(new Meeting("d", users,10111));
-         meetings.add(new Meeting("e", users,1990));
-         meetings.add(new Meeting("f", users,30));
+         meetings.add(new Meeting("a", users,1500,point1));
+         meetings.add(new Meeting("b", users,200,point2));
+         meetings.add(new Meeting("c", users,10,point3));
+         meetings.add(new Meeting("d", users,10111,point4));
+         meetings.add(new Meeting("e", users,1990,point5));
+         meetings.add(new Meeting("f", users,30,point6));
+         meetings.add(new Meeting("a", users,1500,point7));
+         meetings.add(new Meeting("b", users,200,point8));
+         meetings.add(new Meeting("c", users,10,point9));
+         meetings.add(new Meeting("d", users,10111,point10));
+         meetings.add(new Meeting("e", users,1990,point11));
+         meetings.add(new Meeting("f", users,30,point12));
+         meetings.add(new Meeting("a", users,1500,point13));
+         meetings.add(new Meeting("b", users,200,point14));
+         meetings.add(new Meeting("c", users,10,point15));
+         meetings.add(new Meeting("d", users,10111,point16));
+         meetings.add(new Meeting("e", users,1990,point17));
+         meetings.add(new Meeting("f", users,30,point18));
+         mapFragmentMeetings =meetings;
          listFragment.getMeetingList(meetings);
+
      }
 }
