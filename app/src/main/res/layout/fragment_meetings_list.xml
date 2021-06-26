@@ -5,32 +5,36 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+
     tools:context=".fragments.MeetingListFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        android:backgroundTint="@color/teal_700"
         android:orientation="horizontal"
-        android:paddingBottom="10dp"
-        android:paddingTop="10dp">
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp">
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/sortByName"
-        android:text="sort by name"
-        ></Button>
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/sortByDistance"
-        android:text="sort by Distance"
-        ></Button>
+        <Button
+            android:id="@+id/sortByName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#003231"
+            android:text="sort by name"></Button>
+
+        <Button android:layout_marginLeft="10dp"
+            android:id="@+id/sortByDistance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#003231"
+            android:text="sort by Distance"></Button>
     </LinearLayout>
 
     <RelativeLayout
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content" android:layout_marginBottom="5dp">
 
         <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/meetingsRecyclerView"
@@ -42,12 +46,13 @@
             android:id="@+id/fab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginEnd="20dp"
             android:contentDescription="new meeting"
-            app:elevation="6dp"
-            android:layout_margin="20dp"
-            android:layout_marginVertical="20dp" />
+            app:backgroundTint="#AA003231"
+            app:elevation="0dp" />
+
     </RelativeLayout>
 
 </LinearLayout>

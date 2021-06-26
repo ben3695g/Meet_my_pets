@@ -15,10 +15,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.meetmypets.Meeting;
 import com.example.meetmypets.R;
-import com.example.meetmypets.RecyclerViewAdapter;
+import com.example.meetmypets.adapter.RecyclerViewAdapter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MeetingListFragment extends Fragment {

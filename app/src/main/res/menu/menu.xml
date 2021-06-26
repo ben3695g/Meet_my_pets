@@ -15,6 +15,6 @@
     <item
         android:id="@+id/item3"
         android:title="@string/settings"
-        android:icon="@drawable/ic_launcher_foreground"/>
+        android:icon="@drawable/icons8_settings_48"/>
 
 </menu>

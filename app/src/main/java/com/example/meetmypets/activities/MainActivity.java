@@ -9,18 +9,25 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.meetmypets.Meeting;
 import com.example.meetmypets.R;
+import com.example.meetmypets.fragments.CurrentMeeting;
 import com.example.meetmypets.fragments.MeetingListFragment;
+import com.example.meetmypets.fragments.MeetingPageFragment;
 import com.example.meetmypets.fragments.SettingsFragment;
 import com.example.meetmypets.fragments.Splash;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -119,7 +126,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
     @Override
     public void onButtonMeetingClicked(boolean isNewMeeting) {
-
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.flFragment, new MeetingPageFragment(), "CurrentMeeting").addToBackStack("CurrentMeeting");
+        ft.commit();
     }
 
     @Override
@@ -134,7 +143,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         enableMyLocation();
         refreshMarkers();
         googleMap.setOnInfoWindowClickListener(this);
-
+        // info window.
+        map.setInfoWindowAdapter(new CustomInfoWindowAdapter());
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(map.getCameraPosition().target, 15));
     }
     @SuppressLint("MissingPermission")//Permission check invoked at MainActivity
@@ -227,18 +237,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private void refreshMarkers() {
         if (map != null && mapFragmentMeetings != null) {
             for (Meeting meeting :  mapFragmentMeetings) {
-
-
-                //icon
                 LatLng latLng = meeting.getMeetingLocation();
-//                Child kid = entry.getValue();
                 createMarker(meeting,100,  R.drawable.childicon , latLng);
             }
-//            for (Map.Entry<String, Child> entry : kids.entrySet()) {
-//                String kidName = entry.getKey();
-//                Child kid = entry.getValue();
-//                createMarker(kid.location.toLatLng(), kid.alarm ? R.drawable.alarmedchildicon : R.drawable.childicon, kidName, 80);
-//            }
+
         }
     }
 
@@ -258,7 +260,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private void createMarker(Meeting meeting, int iconSize,int iconId,LatLng point) {
         BitmapDescriptor icon = createIcon(iconId, iconSize);
-        Marker marker = map.addMarker(new MarkerOptions().position(point).title( " meeting name: "+meeting.getMeetingName()).snippet("number of users: "+meeting.getSubscribedUserIds().size()+ "\ndistance:"+meeting.getDistance()).icon(icon));
+        Marker marker = map.addMarker(new MarkerOptions().position(point).title( " meeting name: "+meeting.getMeetingName())
+                .snippet("users: "+meeting.getSubscribedUserIds().size()+"\n"+"distance:"+meeting.getDistance()).icon(icon));
         marker.showInfoWindow();
     }
 
@@ -269,33 +272,60 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
 
-    class Yourcustominfowindowadpater implements GoogleMap.InfoWindowAdapter {
-        private final View mymarkerview;
+    class CustomInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 
-        Yourcustominfowindowadpater() {
-            mymarkerview = getLayoutInflater()
-                    .inflate(R.layout.custom_info_window, null);
+        // These are both viewgroups containing an ImageView with id "badge" and two TextViews with id
+        // "title" and "snippet".
+        private final View mWindow;
+
+        private final View mContents;
+
+        CustomInfoWindowAdapter() {
+            mWindow = getLayoutInflater().inflate(R.layout.custom_info_window, null);
+            mContents = getLayoutInflater().inflate(R.layout.custom_info_contents, null);
         }
-
+        private RadioGroup mOptions;
+        @Override
         public View getInfoWindow(Marker marker) {
-            render(marker, mymarkerview);
-            return mymarkerview;
+            render(marker, mWindow);
+            return mWindow;
         }
 
+        @Override
         public View getInfoContents(Marker marker) {
-            return null;
+            if (mOptions.getCheckedRadioButtonId() != R.id.customInfoContents) {
+                // This means that the default info contents will be used.
+                return null;
+            }
+            render(marker, mContents);
+            return mContents;
         }
 
         private void render(Marker marker, View view) {
-            // Add the code to set the required values
-            // for each element in your custominfowindow layout file
-            TextView title =view.findViewById(R.id.title);
-            TextView snippet =view.findViewById(R.id.snippet);
+            String title = marker.getTitle();
+            TextView titleUi = ((TextView) view.findViewById(R.id.title));
+            if (title != null) {
+                // Spannable string allows us to edit the formatting of the text.
+                SpannableString titleText = new SpannableString(title);
+                titleText.setSpan(new ForegroundColorSpan(Color.BLACK), 0, titleText.length(), 0);
+                titleUi.setText(titleText);
+            } else {
+                titleUi.setText("");
+            }
+
+            String snippet = marker.getSnippet();
+            TextView snippetUi = ((TextView) view.findViewById(R.id.snippet));
+            if (snippet != null && snippet.length() > 12) {
+                SpannableString snippetText = new SpannableString(snippet);
+                snippetText.setSpan(new ForegroundColorSpan(Color.BLACK), 0, snippet.length(), 0);
+                snippetUi.setText(snippetText);
+            } else {
+                snippetUi.setText("");
+            }
         }
     }
 
-
-     public void getMeetingsListFromFireBase(){
+    public void getMeetingsListFromFireBase(){
          List<String> users = new ArrayList<String>();
          users.add("a");
          users.add("aa");

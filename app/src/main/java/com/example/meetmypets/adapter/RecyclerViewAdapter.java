@@ -1,4 +1,4 @@
-package com.example.meetmypets;
+package com.example.meetmypets.adapter;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,6 +8,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.meetmypets.Meeting;
+import com.example.meetmypets.R;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -69,10 +72,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     @Override
     public void onBindViewHolder(@NonNull MeetingViewHolder holder, int position) {
         Meeting meeting = chosenMeetings.get(position);
-        holder.meetingName.setText(meeting.meetingName);
-        holder.meetingUsers.setText("users:" + meeting.subscribedUserIds.size());
+        holder.meetingName.setText(meeting.getMeetingName());
+        holder.meetingUsers.setText("users:" + meeting.getSubscribedUserIds().size());
       //  holder.meetingImage.setImageBitmap(meeting.meetingImage);//holder.meetingImage.setImageResource(meeting.get
-        holder.meetingDistance.setText(meeting.distance + "m");
+        holder.meetingDistance.setText(meeting.getDistance() + "m");
     }
 
     @Override

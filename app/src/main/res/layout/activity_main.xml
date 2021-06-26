@@ -20,13 +20,13 @@
         android:id="@+id/bottomBar"
         android:layout_width="match_parent"
         android:layout_height="70dp"
-        app:backgroundColor="@color/teal_200"
-        app:indicatorColor="@color/purple_500"
-        app:indicatorRadius="10dp"
-        app:menu="@menu/menu"
+        app:backgroundColor="@color/teal_700"
+        app:indicatorColor="#003231"
+        app:indicatorRadius="5dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:menu="@menu/menu" />
 
 
 

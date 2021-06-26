@@ -3,7 +3,8 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@drawable/custom_info_bubble"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:id="@+id/customInfoWindow">
 
     <ImageView
         android:id="@+id/badge"
@@ -31,12 +32,14 @@
 
         <TextView
             android:id="@+id/snippet"
-            android:layout_width="wrap_content"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
-
+            android:maxLines="2" android:layout_marginTop="10dp"
+            android:inputType="textMultiLine"
             android:singleLine="true"
             android:textColor="#ff7f7f7f"
-            android:textSize="14dp" />
+            android:textSize="14dp"
+            android:scrollHorizontally="false"/>
     </LinearLayout>
 </LinearLayout>
