@@ -13,6 +13,7 @@ import com.example.meetmypets.R;
 
 import me.ibrahimsn.lib.SmoothBottomBar;
 
+
 public class FeedFragment extends Fragment {
 
     public FeedFragment() {

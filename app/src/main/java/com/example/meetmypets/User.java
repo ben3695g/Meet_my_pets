@@ -3,13 +3,40 @@ package com.example.meetmypets;
 import java.util.List;
 
 public class User {
-    String userId;
-    String name;
-    String userName;
-    String password;
-    List<String> pets;
-    List<String> petsImagesLinks;
-    List<String> subscribedMeetingIds;
-    Boolean userDisableAllNotifications;
-    //profile image
+      String name;
+      String email;
+      String userImage;
+      String petName;
+      String petImage;
+
+      public User() {
+      }
+
+      public User(String name, String email, String userImage, String petName, String petImage) {
+            this.name = name;
+            this.email = email;
+            this.userImage = userImage;
+            this.petName = petName;
+            this.petImage = petImage;
+      }
+
+      public String getName() {
+            return name;
+      }
+
+      public String getEmail() {
+            return email;
+      }
+
+      public String getUserImage() {
+            return userImage;
+      }
+
+      public String getPetName() {
+            return petName;
+      }
+
+      public String getPetImage() {
+            return petImage;
+      }
 }

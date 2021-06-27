@@ -24,5 +24,6 @@
     <string name="name_is_empty">Name is empty</string>
     <string name="password_not_equal">Password not equal</string>
     <string name="already_registerd_wrong_code">Already registered but wrong code entered</string>
+    <string name="pet_name">Pet name</string>
 
 </resources>

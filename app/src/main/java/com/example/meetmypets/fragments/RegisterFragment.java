@@ -1,6 +1,9 @@
 package com.example.meetmypets.fragments;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -9,15 +12,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.meetmypets.R;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
@@ -26,19 +30,24 @@ import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
+import com.theartofdev.edmodo.cropper.CropImage;
+import com.theartofdev.edmodo.cropper.CropImageView;
 
 import me.ibrahimsn.lib.SmoothBottomBar;
 
-/**
- * Created by Gal Reshef on 6/25/2021.
- */
-
 public class RegisterFragment extends Fragment {
     Button btnRegister;
-    EditText etName, etEmail, etPassword, etPassword2;
+    EditText etName, etEmail, etPassword, etPassword2, etPetName;
+    ImageView ivUser,ivPet;
     FirebaseAuth mAuth;
     SharedPreferences sp;
     DatabaseReference  usersRef;
+    Uri userImageUri = null;
+    Uri petImageUri = null;
+    int USER_IMAGE_REQ_CODE = 999;
+    int PET_IMAGE_REQ_CODE = 888;
+    boolean userImage=true;
+
     public RegisterFragment() {
     }
 
@@ -64,6 +73,10 @@ public class RegisterFragment extends Fragment {
         etPassword = view.findViewById(R.id.etPassword);
         etPassword2 = view.findViewById(R.id.etPassword2);
         btnRegister = view.findViewById(R.id.btnRegister);
+        etPetName = view.findViewById(R.id.etPetName);
+        ivUser = view.findViewById(R.id.ivUser);
+        ivPet = view.findViewById(R.id.ivPet);
+
 
         etEmail.setText(email);
         etPassword.setText(password);
@@ -74,9 +87,66 @@ public class RegisterFragment extends Fragment {
             }
         });
 
+        ivUser.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("image/*");
 
+           startActivityForResult(intent,USER_IMAGE_REQ_CODE);
 
+        });
 
+        ivPet.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("image/*");
+
+            startActivityForResult(intent,PET_IMAGE_REQ_CODE);
+        });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable  Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode==USER_IMAGE_REQ_CODE && resultCode== Activity.RESULT_OK) {
+            if (data!=null){
+                userImageUri=data.getData();
+                CropImage.activity(userImageUri)
+                        .setCropShape(CropImageView.CropShape.OVAL)
+                        .setAspectRatio(1,1)
+                        .setGuidelines(CropImageView.Guidelines.ON)
+                        .start(requireContext(),this);
+            }
+        }
+        if (requestCode==PET_IMAGE_REQ_CODE && resultCode== Activity.RESULT_OK) {
+            if (data!=null){
+                petImageUri=data.getData();
+                CropImage.activity(petImageUri)
+                        .setCropShape(CropImageView.CropShape.OVAL)
+                        .setAspectRatio(1,1)
+                        .setGuidelines(CropImageView.Guidelines.ON)
+                        .start(requireContext(),this);
+
+            }
+        }
+        if ( resultCode== CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+            CropImage.ActivityResult result= CropImage.getActivityResult(data);
+            if (result!=null){
+                userImageUri=data.getData();
+                if(userImage) {
+                    userImageUri = data.getData();
+                    Glide.with(this)
+                            .load(userImageUri)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            .into(ivUser);
+                    userImageUri = data.getData();
+                } else {
+                  petImageUri=data.getData();
+                    Glide.with(this)
+                            .load(petImageUri)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            .into(ivPet);
+                }
+            }
+        }
     }
 
     private boolean checkData() {
@@ -102,7 +172,16 @@ public class RegisterFragment extends Fragment {
             etName.setError(getString(R.string.name_is_empty));
             return false;
         }
-
+        if(userImageUri==null)
+        {
+            Toast.makeText(requireContext(), "Must select image for user!", Toast.LENGTH_SHORT).show();
+        return  false;
+        }
+        if(petImageUri==null)
+        {
+            Toast.makeText(requireContext(), "Must select image for pet!", Toast.LENGTH_SHORT).show();
+       return false;
+        }
         return true;
     }
 
