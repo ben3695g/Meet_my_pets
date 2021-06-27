@@ -55,7 +55,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                 public void onClick(View v) {
                     if(listener != null)
                         listener.onMeetingClicked(getBindingAdapterPosition(),v);
-
                 }
             });
         }
@@ -83,15 +82,32 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         return chosenMeetings != null ? chosenMeetings.size() : 0;
     }
 
-    public void orderByName(){
-        if (chosenMeetings == null) return;
-        this.chosenMeetings = chosenMeetings.stream().sorted((x, y)-> x.getMeetingName().compareTo(y.getMeetingName())).collect(Collectors.toList());
+    public void orderByName(boolean toggleDirectionName){
+        if(toggleDirectionName) {
+            if (chosenMeetings == null) return;
+            this.chosenMeetings = chosenMeetings.stream().sorted((x, y) -> x.getMeetingName().compareTo(y.getMeetingName())).collect(Collectors.toList());
+        }else{
+            this.chosenMeetings = chosenMeetings.stream().sorted((y, x) -> x.getMeetingName().compareTo(y.getMeetingName())).collect(Collectors.toList());
+        }
         notifyDataSetChanged();
     }
 
-    public void orderByDistance(){
+    public void orderByDistance(boolean toggleDirectionDistance){
+        if(toggleDirectionDistance){
         if (chosenMeetings == null) return;
         this.chosenMeetings = chosenMeetings.stream().sorted((x, y)-> Integer.compare(x.getDistance(),y.getDistance())).collect(Collectors.toList());
+        }else{
+            this.chosenMeetings = chosenMeetings.stream().sorted((y, x)-> Integer.compare(x.getDistance(),y.getDistance())).collect(Collectors.toList());
+        }
+        notifyDataSetChanged();
+    }
+    public void orderByNumberOfUsers(boolean toggleDirectionUsers){
+        if(toggleDirectionUsers) {
+            if (chosenMeetings == null) return;
+            this.chosenMeetings = chosenMeetings.stream().sorted((x, y)-> Integer.compare(x.getSubscribedUserIds().size(),y.getSubscribedUserIds().size())).collect(Collectors.toList());
+        }else{
+            this.chosenMeetings = chosenMeetings.stream().sorted((y, x)-> Integer.compare(x.getSubscribedUserIds().size(),y.getSubscribedUserIds().size())).collect(Collectors.toList());
+        }
         notifyDataSetChanged();
     }
 

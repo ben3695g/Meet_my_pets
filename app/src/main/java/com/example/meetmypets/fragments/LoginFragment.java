@@ -140,7 +140,7 @@ public class LoginFragment extends Fragment {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString();
         sp.edit().putString("email", email).putString("password",password).apply();
-        getParentFragmentManager().beginTransaction().replace(R.id.flFragment,
+        getParentFragmentManager().beginTransaction().replace(R.id.mainLayout,
                 new RegisterFragment(), "RegisterFragment")
                 .addToBackStack("RegisterFragment").commit();
     }

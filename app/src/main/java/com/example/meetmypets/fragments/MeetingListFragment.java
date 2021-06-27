@@ -25,6 +25,7 @@ public class MeetingListFragment extends Fragment {
     private ListActionCallback callback;
     private RecyclerViewAdapter recyclerViewAdapter;
     private List<Meeting> chosenMeetings;
+    private boolean diractionFilter =true, nameFilter =true, userFilter = true;
 
     public MeetingListFragment(){
         recyclerViewAdapter = new RecyclerViewAdapter();
@@ -44,8 +45,9 @@ public class MeetingListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_meetings_list,container,false);
-        Button orderByName, orderByDistance;
+        Button orderByName, orderByDistance,orderByUsers;
         orderByName = root.findViewById(R.id.sortByName);
+        orderByUsers = root.findViewById(R.id.sortByUsers);
         orderByDistance =root.findViewById(R.id.sortByDistance);
         FloatingActionButton floatingActionButton = root.findViewById(R.id.fab);
         //RecyclerView
@@ -58,14 +60,24 @@ public class MeetingListFragment extends Fragment {
         orderByName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                recyclerViewAdapter.orderByName();
+                recyclerViewAdapter.orderByName(nameFilter);
+                nameFilter =! nameFilter;
+            }
+        });
+
+        orderByUsers.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                recyclerViewAdapter.orderByNumberOfUsers(userFilter);
+                userFilter =! userFilter;
             }
         });
 
         orderByDistance.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                recyclerViewAdapter.orderByDistance();
+                recyclerViewAdapter.orderByDistance(diractionFilter);
+                diractionFilter =!diractionFilter;
             }
         });
 
@@ -77,32 +89,6 @@ public class MeetingListFragment extends Fragment {
             }
         });
 
-        // 1) create or acquire Model
-        // static meetings list initialization
-//        List<String> users = new ArrayList<String>();
-//        users.add("a");
-//        users.add("aa");
-//        List<Meeting> meetings = new ArrayList<>();
-//        meetings.add(new Meeting("a", users,1500));
-//        meetings.add(new Meeting("b", users,200));
-//        meetings.add(new Meeting("c", users,10));
-//        meetings.add(new Meeting("d", users,10111));
-//        meetings.add(new Meeting("e", users,1990));
-//        meetings.add(new Meeting("f", users,30));
-//        meetings.add(new Meeting("a", users,1500));
-//        meetings.add(new Meeting("b", users,200));
-//        meetings.add(new Meeting("c", users,10));
-//        meetings.add(new Meeting("d", users,10111));
-//        meetings.add(new Meeting("e", users,1990));
-//        meetings.add(new Meeting("f", users,30));
-//        meetings.add(new Meeting("a", users,1500));
-//        meetings.add(new Meeting("b", users,200));
-//        meetings.add(new Meeting("c", users,10));
-//        meetings.add(new Meeting("d", users,10111));
-//        meetings.add(new Meeting("e", users,1990));
-//        meetings.add(new Meeting("f", users,30));
-
-        // 2) Create logic class (View Model)
 
         recyclerViewAdapter.setListener(new RecyclerViewAdapter.MyMeetingListener() {
             @Override

@@ -1,69 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#72BFB8"
     android:orientation="vertical"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".fragments.MeetingPageFragment">
+    tools:context=".fragments.MeetingPageFragment"
+    android:elevation="10dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="top"
         android:layout_weight="0.2"
-        android:orientation="vertical"
-        >
-        >
+        android:orientation="vertical">
+
         <TextView
+            android:id="@+id/meetingPageName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="meeting name"
-            android:layout_weight="1"></TextView>
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-black"
+            android:gravity="center"
+            android:text="meeting name "
+            android:textSize="24sp"></TextView>
+
         <TextView
+            android:id="@+id/meetingPageDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="meeting description"
-            android:layout_weight="1"></TextView>
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center_vertical"
+            android:maxLines="4"
+            android:scrollbars="vertical"
+            android:text="meeting description ">
+
+        </TextView>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="top"
             android:layout_weight="0.2"
-            android:orientation="horizontal"
-            >
+            android:background="@color/teal_700"
+            android:orientation="horizontal">
+
             <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="show on map"
                 android:id="@+id/showOnMapBtn"
-
-                ></Button>
-            <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="mute notifications"
+                android:backgroundTint="#003231"
+
+                android:text="show on map"></Button>
+
+            <Button
                 android:id="@+id/muteNotificationsBtn"
-
-                ></Button>
-            <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="unsubscribe"
+                android:backgroundTint="#003231"
+
+                android:text="mute notifications"></Button>
+
+            <Button
                 android:id="@+id/unsubscribeFromMeetingBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="#003231"
 
-                ></Button>
-
+                android:text="unsubscribe"></Button>
         </LinearLayout>
 
     </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
+
+    <FrameLayout
+        android:id="@+id/chatFragment"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="1"
+        >
 
-        ></LinearLayout>
+    </FrameLayout>
 </LinearLayout>

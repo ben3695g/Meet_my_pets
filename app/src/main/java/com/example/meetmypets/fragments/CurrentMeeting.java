@@ -74,15 +74,16 @@ public class CurrentMeeting extends Fragment {
         user = FirebaseAuth.getInstance().getCurrentUser();
         meetingRef = FirebaseDatabase.getInstance().getReference()
                 .child("Meetings")
-                .child(meeting.getId())
+                .child("meet-aaa")
+                //.child(meeting.getId())
                 .child("Messages");
 
         Gson gson = new Gson();
         Type type = new TypeToken<Meeting>() {
         }.getType();
         meeting = gson.fromJson(json, type);
-        rvMessages.findViewById(R.id.rvMessages);
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        rvMessages=view.findViewById(R.id.rvMessages);
+        //FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         getMessages();
 

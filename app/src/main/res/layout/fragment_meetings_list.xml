@@ -16,20 +16,35 @@
         android:orientation="horizontal"
         android:paddingTop="10dp"
         android:paddingBottom="10dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="sort by:"
+            android:layout_marginRight="5dp"></TextView>
 
         <Button
             android:id="@+id/sortByName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:backgroundTint="#003231"
-            android:text="sort by name"></Button>
+            android:layout_gravity="center"
 
-        <Button android:layout_marginLeft="10dp"
+            android:backgroundTint="#003231"
+            android:text="name"></Button>
+
+        <Button
             android:id="@+id/sortByDistance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:backgroundTint="#003231"
-            android:text="sort by Distance"></Button>
+            android:text="Distance"></Button>
+        <Button
+            android:id="@+id/sortByUsers"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:backgroundTint="#003231"
+            android:text="users"></Button>
     </LinearLayout>
 
     <RelativeLayout
@@ -49,9 +64,11 @@
             android:layout_alignParentRight="true"
             android:layout_alignParentBottom="true"
             android:layout_marginEnd="20dp"
+            android:layout_marginRight="23dp"
+            android:layout_marginBottom="22dp"
             android:contentDescription="new meeting"
-            app:backgroundTint="#AA003231"
-            app:elevation="0dp" />
+            app:backgroundTint="#CC003231"
+            app:elevation="1dp" />
 
     </RelativeLayout>
 

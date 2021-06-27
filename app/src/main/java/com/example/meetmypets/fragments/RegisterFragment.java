@@ -94,7 +94,7 @@ public class RegisterFragment extends Fragment {
             etPassword.setError(getString(R.string.password_is_too_short));
             return false;
         }
-        if (etPassword.getText().toString().trim().equals(etPassword2.getText().toString().trim())) {
+        if (!etPassword.getText().toString().trim().equals(etPassword2.getText().toString().trim())) {
             etPassword2.setError(getString(R.string.password_not_equal));
             return false;
         }

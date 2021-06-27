@@ -2,6 +2,7 @@ package com.example.meetmypets.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -11,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,8 +28,10 @@ import android.widget.Toast;
 import com.example.meetmypets.Meeting;
 import com.example.meetmypets.R;
 import com.example.meetmypets.fragments.CurrentMeeting;
+import com.example.meetmypets.fragments.LoginFragment;
 import com.example.meetmypets.fragments.MeetingListFragment;
 import com.example.meetmypets.fragments.MeetingPageFragment;
+import com.example.meetmypets.fragments.NewMeetingFragment;
 import com.example.meetmypets.fragments.SettingsFragment;
 import com.example.meetmypets.fragments.Splash;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -63,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private Location userLocation;
     private boolean userIsLoggedIn, isMapReady, isMapLoaded =false, isCameraMoved =false;
     private  List<Meeting> mapFragmentMeetings;
+    private int previousCase = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         int resultCoarseLocation = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
         if (resultFineLocation != PackageManager.PERMISSION_GRANTED && resultCoarseLocation != PackageManager.PERMISSION_GRANTED) {
             //todo if permission is denied
+            //Dexter d;
             ActivityCompat.requestPermissions(this,
                     new String[] { Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION },
                     MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
@@ -97,11 +103,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         smoothBottomBar.setOnItemSelectedListener(position -> {
             switch (position) {
                 case 0:
-                    handleFragment(listFragment,"Meetings");
+                    smoothBottomBar.getItemActiveIndex();
+                    handleFragment(listFragment,"Meetings",0);
                     break;
                 case 1:
                     isCameraMoved =false;
-                    handleFragment(mapFragment, "Map");
+                    handleFragment(mapFragment, "Map",1);
                     mapFragment.getMapAsync(this);
                     if (!isMapLoaded){
 
@@ -110,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     }
                     break;
                 case 2:
-                    handleFragment(new SettingsFragment(), "Settings");//LogInFragment
+                    handleFragment(new SettingsFragment(), "Settings",2);//LogInFragment
                     break;
             }
             return false;
@@ -119,21 +126,55 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
 
-    void handleFragment(Fragment fragment, String fragmentName) {
+    void handleFragment(Fragment fragment, String fragmentName,int futureCase) {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.flFragment, fragment, fragmentName);
+        if(previousCase>futureCase) {
+            ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
+        }else{
+            ft.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left);
+        }
+        previousCase =futureCase;
+        ft.replace(R.id.flFragment, fragment, fragmentName);;
         ft.commit();
+    }
+
+    void handleNonSmoothBottomBarFragment(String fragment) {
+        FragmentTransaction ft , ftt;
+                ft = getSupportFragmentManager().beginTransaction();
+        ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
+        if(true)//check if user is loged in
+        {
+            if (fragment == "MeetingPageFragment") {
+                ft.replace(R.id.mainLayout, new MeetingPageFragment(), "MeetingPageFragment").addToBackStack("MeetingPageFragment");
+               // ftt = getSupportFragmentManager().beginTransaction();
+               // ftt.replace(R.id.chatFragment, new CurrentMeeting(), "CurrentMeeting");;
+
+                } else {
+                ft.replace(R.id.mainLayout, new NewMeetingFragment(), "NewMeetingFragment").addToBackStack("NewMeetingFragment");
+            }
+        }else{
+            ft.replace(R.id.mainLayout, new LoginFragment(), "LoginFragment").addToBackStack("LoginFragment");
+        }
+        ft.commit();
+        //ftt.commit();
     }
     @Override
     public void onButtonMeetingClicked(boolean isNewMeeting) {
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.flFragment, new MeetingPageFragment(), "CurrentMeeting").addToBackStack("CurrentMeeting");
-        ft.commit();
+        handleNonSmoothBottomBarFragment("MeetingPageFragment");
+//        FragmentTransaction ft , ftt;
+//        ft = getSupportFragmentManager().beginTransaction();
+//        ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
+//        ft.replace(R.id.mainLayout, new MeetingPageFragment(), "MeetingPageFragment").addToBackStack("MeetingPageFragment");
+//        ft.commit();
+//        ftt = getSupportFragmentManager().beginTransaction();
+//        ftt.replace(R.id.chatFragment, new CurrentMeeting(), "CurrentMeeting");;
+//        ftt.commit();
+
     }
 
     @Override
     public void onButtonNewMeetingClicked(boolean isNewMeeting) {
-
+        handleNonSmoothBottomBarFragment("NewMeetingFragment");
     }
 
     @Override
@@ -145,6 +186,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         googleMap.setOnInfoWindowClickListener(this);
         // info window.
         map.setInfoWindowAdapter(new CustomInfoWindowAdapter());
+//        internal val DEFAULT_TLV_LATLNG: LatLng = LatLng(32.09040223978312, 34.782786585677016)azrieli
+        //internal val DEFAULT_CENTER_LATLNG: LatLng = LatLng(31.298816, 34.880428)7.5zoom
+
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(map.getCameraPosition().target, 15));
     }
     @SuppressLint("MissingPermission")//Permission check invoked at MainActivity
@@ -238,7 +282,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         if (map != null && mapFragmentMeetings != null) {
             for (Meeting meeting :  mapFragmentMeetings) {
                 LatLng latLng = meeting.getMeetingLocation();
-                createMarker(meeting,100,  R.drawable.childicon , latLng);
+                createMarker(meeting,100,  R.drawable.icons8_dog_park_50 , latLng);
             }
 
         }
@@ -248,7 +292,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         int height = iconSize;
         int width = iconSize;
 
-        BitmapDrawable bitmapdraw = (BitmapDrawable)getResources().getDrawable(iconId);
+//        BitmapDrawable bitmapdraw = (BitmapDrawable)getResources().getDrawable(iconId);
+//        Drawable chipIcon= ResourcesCompat.getDrawable(this.getResources(),iconId,null);
+        BitmapDrawable bitmapdraw = (BitmapDrawable)getResources().getDrawable(iconId,null);
 
         Bitmap b = bitmapdraw.getBitmap();
 
@@ -329,6 +375,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
          List<String> users = new ArrayList<String>();
          users.add("a");
          users.add("aa");
+         List<String> userss = new ArrayList<String>();
+            users.add("a");
+            users.add("aa");
+            users.add("a");
+            users.add("aa");
          LatLng point1 = new LatLng(31.776507546255935, 34.62478162343042);
          LatLng point2 = new LatLng(31.775506291568767, 34.6270703705988);
          LatLng point3 = new LatLng(31.775144063934704, 34.63015265240772);
@@ -367,9 +418,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
          meetings.add(new Meeting("a13", users,1500,point13));
          meetings.add(new Meeting("b14", users,200,point14));
          meetings.add(new Meeting("c15", users,10,point15));
-         meetings.add(new Meeting("d16", users,10111,point16));
-         meetings.add(new Meeting("e117", users,1990,point17));
-         meetings.add(new Meeting("f18", users,30,point18));
+         meetings.add(new Meeting("d16", userss,10111,point16));
+         meetings.add(new Meeting("e117", userss,1990,point17));
+         meetings.add(new Meeting("f18", userss,30,point18));
          mapFragmentMeetings =meetings;
          listFragment.getMeetingList(meetings);
 
