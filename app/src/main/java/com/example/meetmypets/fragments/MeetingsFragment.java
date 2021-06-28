@@ -14,8 +14,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.meetmypets.R;
-import com.example.meetmypets.adapter.MeetingsAdapter;
-import com.example.meetmypets.model.Meeting;
+import com.example.meetmypets.adapter.MeetingsAdapterToDelete;
+import com.example.meetmypets.model.MeetingToDelete;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
@@ -29,9 +29,9 @@ import java.util.List;
 import me.ibrahimsn.lib.SmoothBottomBar;
 
 public class MeetingsFragment extends Fragment {
-    private List<Meeting> meetingsList = new ArrayList<>();
+    private List<MeetingToDelete> meetingsList = new ArrayList<>();
     private RecyclerView rvMeetings;
-    private MeetingsAdapter adapter = null;
+    private MeetingsAdapterToDelete adapter = null;
     public MeetingsFragment() {
 
     }
@@ -53,7 +53,7 @@ public class MeetingsFragment extends Fragment {
 
         rvMeetings.setHasFixedSize(true);
         rvMeetings.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false));
-        adapter = new MeetingsAdapter(requireContext(), meetingsList);
+        adapter = new MeetingsAdapterToDelete(requireContext(), meetingsList);
         rvMeetings.setAdapter(adapter);
 
         adapter.setListener(position -> {
@@ -73,7 +73,7 @@ public class MeetingsFragment extends Fragment {
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         if (dataSnapshot.exists()) {
                             for (final DataSnapshot object : dataSnapshot.getChildren()) {
-                                Meeting meeting = object.getValue(Meeting.class);
+                                MeetingToDelete meeting = object.getValue(MeetingToDelete.class);
                                 meetingsList.add(meeting);
                             }
                             Collections.reverse(meetingsList);

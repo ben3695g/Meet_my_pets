@@ -22,6 +22,7 @@ import androidx.fragment.app.Fragment;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.meetmypets.R;
+import com.example.meetmypets.activities.MainActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
@@ -32,8 +33,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
-
-import me.ibrahimsn.lib.SmoothBottomBar;
 
 public class RegisterFragment extends Fragment {
     Button btnRegister;
@@ -47,8 +46,10 @@ public class RegisterFragment extends Fragment {
     int USER_IMAGE_REQ_CODE = 999;
     int PET_IMAGE_REQ_CODE = 888;
     boolean userImage=true;
+    private Fragment fragmentToGo;
 
-    public RegisterFragment() {
+    public RegisterFragment(Fragment fragmentToGo) {
+        this.fragmentToGo = fragmentToGo;
     }
 
 
@@ -83,7 +84,7 @@ public class RegisterFragment extends Fragment {
 
         btnRegister.setOnClickListener(v -> {
             if (checkData()) {
-                login();
+                register();
             }
         });
 
@@ -185,7 +186,7 @@ public class RegisterFragment extends Fragment {
         return true;
     }
 
-    public void login() {
+    private void register() {
         String email, password, name;
         email = etEmail.getText().toString().trim();
         password = etPassword.getText().toString().trim();
@@ -198,13 +199,13 @@ public class RegisterFragment extends Fragment {
                 if (user != null) {
                     usersRef.child(user.getUid()).child("Details").child("LastSeen")
                             .setValue(ServerValue.TIMESTAMP);
-                    moveToMain();
+                    moveToNextOrMain();
                 }
             } else {
                 Log.d("auth", "signInWithCredential:failure", task.getException());
                 if (task.getException() instanceof FirebaseAuthInvalidUserException) {
                     //TODO move to register
-                    register(email, password , name);
+                    doRegister(email, password , name);
 
                 } else if (task.getException() instanceof FirebaseAuthInvalidCredentialsException)
                     Toast.makeText(requireContext(),
@@ -213,7 +214,7 @@ public class RegisterFragment extends Fragment {
         });
     }
 
-    private void register(String email, String password, String name) {
+    private void doRegister(String email, String password, String name) {
         mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 Log.d("auth", "user created successfully");
@@ -241,7 +242,7 @@ public class RegisterFragment extends Fragment {
                             .addOnCompleteListener(task1 -> {
                                 if (task1.isSuccessful()) {
                                     Log.d("firebase", "User profile updated.");
-                                    moveToMain();
+                                    moveToNextOrMain();
                                 }
                             });
                 }
@@ -249,11 +250,9 @@ public class RegisterFragment extends Fragment {
         });
     }
 
-
-    private void moveToMain() {
-        SmoothBottomBar smoothBottomBar = getActivity().findViewById(R.id.bottomBar);
-        smoothBottomBar.setItemActiveIndex(0);
-        getParentFragmentManager().beginTransaction().replace(R.id.flFragment,
-                new FeedFragment(), "FeedFragment").commit();
+    private void moveToNextOrMain() {
+        MainActivity mainActivity = (MainActivity)getActivity();
+        if (fragmentToGo != null) mainActivity.navigateToPageFragment(fragmentToGo);
+        else mainActivity.navigateToTabFragment(this);
     }
 }

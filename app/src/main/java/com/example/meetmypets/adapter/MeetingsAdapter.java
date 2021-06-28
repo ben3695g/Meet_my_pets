@@ -1,70 +1,154 @@
 package com.example.meetmypets.adapter;
 
-import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.meetmypets.R;
 import com.example.meetmypets.model.Meeting;
+import com.example.meetmypets.R;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class MeetingsAdapter extends RecyclerView.Adapter<MeetingsAdapter.MyMeetingsViewHolder> {
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
-    private Context context;
-    private final List<Meeting> meetingList;
-    private myMeetingsListener listener;
+public class MeetingsAdapter extends RecyclerView.Adapter<MeetingsAdapter.MeetingViewHolder> {
+    private List<Meeting> chosenMeetings = new ArrayList<>();
+    private MyMeetingListener listener;
 
-    public interface myMeetingsListener {
-        void onMeetingsListener(int position);
+    public interface MyMeetingListener {
+        void onMeetingClicked(int position,View view);
     }
-    public void setListener(myMeetingsListener listener) {
+
+    public MeetingsAdapter() {
+
+    }
+
+    public void setListener(MyMeetingListener listener) {
         this.listener = listener;
     }
+    /**
+     * Provide a reference to the type of views that you are using
+     * (custom ViewHolder).
+     */
+    public class MeetingViewHolder extends RecyclerView.ViewHolder {
+        RelativeLayout relativeLayout;
+        TextView meetingName;
+        //Location meetingLocation;
+        TextView meetingUsers;
+        TextView meetingDistance;
+       // ImageView meetingImage;
 
+        public MeetingViewHolder(View view) {
+            super(view);
+            relativeLayout =view.findViewById(R.id.cellLayout);
+            meetingName = view.findViewById(R.id.cellText);
+            meetingUsers = view.findViewById(R.id.cellUsers);
+            meetingDistance = view.findViewById(R.id.cellDistance);
 
-    public MeetingsAdapter(Context context, List<Meeting> meetingList) {
-        this.meetingList = meetingList;
-        this.context = context;
-    }
-
-    public class MyMeetingsViewHolder  extends RecyclerView.ViewHolder {
-        //TODO eli - fill the items like textView ImageView
-        final TextView tvMeetingName;
-
-        MyMeetingsViewHolder(@NonNull View itemView) {
-            super(itemView);
-            tvMeetingName = itemView.findViewById(R.id.tvMeetingName);
-            itemView.setOnClickListener(view -> {
-                if (listener != null) {
-                    listener.onMeetingsListener(getAdapterPosition());
+          //  meetingImage = view.findViewById(R.id.cellImage);
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(listener != null)
+                        listener.onMeetingClicked(getBindingAdapterPosition(),v);
                 }
             });
         }
     }
 
+    private void getData() {
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+        reference.child("meets")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) {
+                            for (final DataSnapshot object : dataSnapshot.getChildren()) {
+                                Meeting meeting = object.getValue(Meeting.class);
+                                chosenMeetings.add(meeting);
+                            }
+                            Collections.reverse(chosenMeetings);
+                            notifyDataSetChanged();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        Log.w("firebase", "onCancelled", databaseError.toException());
+                    }
+                });
+    }
+
     @NonNull
     @Override
-    public MyMeetingsViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_meeting,parent,false);
-        return new MyMeetingsViewHolder(view);
+    public MeetingViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_cell, parent,false);
+        MeetingViewHolder meetingViewHolder = new MeetingViewHolder((view));
+        return  meetingViewHolder;
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MyMeetingsViewHolder holder, int position) {
-        Meeting meeting = meetingList.get(position);
-        holder.tvMeetingName.setText(meeting.getMeetingName());
-
+    public void onBindViewHolder(@NonNull MeetingViewHolder holder, int position) {
+        Meeting meeting = chosenMeetings.get(position);
+        holder.meetingName.setText(meeting.getMeetingName());
+        holder.meetingUsers.setText("users:" + meeting.getSubscribedUserIds().size());
+      //  holder.meetingImage.setImageBitmap(meeting.meetingImage);//holder.meetingImage.setImageResource(meeting.get
+        holder.meetingDistance.setText(meeting.getDistance() + "m");
     }
 
     @Override
-    public int getItemCount() { return meetingList.size(); }
+    public int getItemCount() {
+        return chosenMeetings != null ? chosenMeetings.size() : 0;
+    }
 
+    public void orderByName(boolean toggleDirectionName){
+        if(toggleDirectionName) {
+            if (chosenMeetings == null) return;
+            this.chosenMeetings = chosenMeetings.stream().sorted((x, y) -> x.getMeetingName().compareTo(y.getMeetingName())).collect(Collectors.toList());
+        }else{
+            this.chosenMeetings = chosenMeetings.stream().sorted((y, x) -> x.getMeetingName().compareTo(y.getMeetingName())).collect(Collectors.toList());
+        }
+        notifyDataSetChanged();
+    }
 
+    public void orderByDistance(boolean toggleDirectionDistance){
+        if(toggleDirectionDistance){
+        if (chosenMeetings == null) return;
+        this.chosenMeetings = chosenMeetings.stream().sorted((x, y)-> Integer.compare(x.getDistance(),y.getDistance())).collect(Collectors.toList());
+        }else{
+            this.chosenMeetings = chosenMeetings.stream().sorted((y, x)-> Integer.compare(x.getDistance(),y.getDistance())).collect(Collectors.toList());
+        }
+        notifyDataSetChanged();
+    }
+    public void orderByNumberOfUsers(boolean toggleDirectionUsers){
+        if(toggleDirectionUsers) {
+            if (chosenMeetings == null) return;
+            this.chosenMeetings = chosenMeetings.stream().sorted((x, y)-> Integer.compare(x.getSubscribedUserIds().size(),y.getSubscribedUserIds().size())).collect(Collectors.toList());
+        }else{
+            this.chosenMeetings = chosenMeetings.stream().sorted((y, x)-> Integer.compare(x.getSubscribedUserIds().size(),y.getSubscribedUserIds().size())).collect(Collectors.toList());
+        }
+        notifyDataSetChanged();
+    }
+
+    public void readData() {
+        getData();
+    }
+
+//    public void refreshMeetingsList(List<Meeting> meetings){
+//        chosenMeetings =meetings;
+//        notifyDataSetChanged();
+//    }
 }
-

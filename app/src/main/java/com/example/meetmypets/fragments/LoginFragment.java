@@ -16,30 +16,15 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.example.meetmypets.R;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
+import com.example.meetmypets.activities.MainActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.UserProfileChangeRequest;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
-import com.google.firebase.database.ValueEventListener;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import me.ibrahimsn.lib.SmoothBottomBar;
 
 public class LoginFragment extends Fragment {
 
@@ -48,9 +33,10 @@ public class LoginFragment extends Fragment {
     Button btnLogin;
     SharedPreferences sp;
     Context context;
+    private Fragment fragmentToGo;
 
-
-    public LoginFragment() {
+    public LoginFragment(Fragment fragmentToGo) {
+        this.fragmentToGo = fragmentToGo;
     }
 
 
@@ -114,7 +100,7 @@ public class LoginFragment extends Fragment {
                         FirebaseDatabase.getInstance().getReference()
                                 .child("Users").child(user.getUid()).child("Details").child("LastSeen")
                                 .setValue(ServerValue.TIMESTAMP);
-                        moveToMain();
+                        moveToNextOrMain();
                     }
                 } else {
                     Log.d("auth", "signInWithCredential:failure", task.getException());
@@ -129,20 +115,19 @@ public class LoginFragment extends Fragment {
         });
     }
 
-    private void moveToMain() {
-        SmoothBottomBar smoothBottomBar = getActivity().findViewById(R.id.bottomBar);
-        smoothBottomBar.setItemActiveIndex(0);
-        getParentFragmentManager().beginTransaction().replace(R.id.flFragment,
-                new FeedFragment(), "FeedFragment").commit();
+    private void moveToNextOrMain() {
+        MainActivity mainActivity = (MainActivity)getActivity();
+        if (fragmentToGo != null) mainActivity.navigateToPageFragment(fragmentToGo);
+        else mainActivity.navigateToTabFragment(this);
     }
 
     private void moveToRegister() {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString();
         sp.edit().putString("email", email).putString("password",password).apply();
-        getParentFragmentManager().beginTransaction().replace(R.id.mainLayout,
-                new RegisterFragment(), "RegisterFragment")
-                .addToBackStack("RegisterFragment").commit();
+
+        MainActivity mainActivity = (MainActivity)getActivity();
+        mainActivity.navigateToPageFragment(new RegisterFragment(fragmentToGo));
     }
 
 }

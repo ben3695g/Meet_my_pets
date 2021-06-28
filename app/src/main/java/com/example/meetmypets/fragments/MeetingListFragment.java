@@ -1,6 +1,5 @@
 package com.example.meetmypets.fragments;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,22 +12,26 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.meetmypets.Meeting;
+import com.example.meetmypets.model.Meeting;
 import com.example.meetmypets.R;
-import com.example.meetmypets.adapter.RecyclerViewAdapter;
+import com.example.meetmypets.activities.MainActivity;
+import com.example.meetmypets.adapter.MeetingsAdapter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.List;
 
 public class MeetingListFragment extends Fragment {
 
-    private ListActionCallback callback;
-    private RecyclerViewAdapter recyclerViewAdapter;
+   // private ListActionCallback callback;
+   FirebaseUser user;
+    private MeetingsAdapter meetingsAdapter;
     private List<Meeting> chosenMeetings;
     private boolean diractionFilter =true, nameFilter =true, userFilter = true;
 
     public MeetingListFragment(){
-        recyclerViewAdapter = new RecyclerViewAdapter();
+        meetingsAdapter = new MeetingsAdapter();
     }
 
     @Override
@@ -36,11 +39,6 @@ public class MeetingListFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
     }
-    public interface ListActionCallback {
-        void onButtonMeetingClicked(boolean bool);
-        void onButtonNewMeetingClicked(boolean bool);
-    }
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
@@ -54,13 +52,12 @@ public class MeetingListFragment extends Fragment {
         RecyclerView recyclerView = root.findViewById(R.id.meetingsRecyclerView);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        //static users id list initialization
 
 
         orderByName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                recyclerViewAdapter.orderByName(nameFilter);
+                meetingsAdapter.orderByName(nameFilter);
                 nameFilter =! nameFilter;
             }
         });
@@ -68,7 +65,7 @@ public class MeetingListFragment extends Fragment {
         orderByUsers.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                recyclerViewAdapter.orderByNumberOfUsers(userFilter);
+                meetingsAdapter.orderByNumberOfUsers(userFilter);
                 userFilter =! userFilter;
             }
         });
@@ -76,7 +73,7 @@ public class MeetingListFragment extends Fragment {
         orderByDistance.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                recyclerViewAdapter.orderByDistance(diractionFilter);
+                meetingsAdapter.orderByDistance(diractionFilter);
                 diractionFilter =!diractionFilter;
             }
         });
@@ -85,43 +82,66 @@ public class MeetingListFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Toast.makeText(getActivity(), "add new meeting", Toast.LENGTH_SHORT).show();
-                callback.onButtonNewMeetingClicked(true);
+
+                MainActivity mainActivity = (MainActivity)getActivity();
+                NewMeetingFragment newMeetingFragment = new NewMeetingFragment(meetingsAdapter);
+
+                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+                if(user != null) //check if user is loged in
+                {
+                    mainActivity.navigateToPageFragment(newMeetingFragment);
+                } else {
+                    mainActivity.navigateToPageFragment(new LoginFragment(newMeetingFragment));
+                }
             }
         });
 
 
-        recyclerViewAdapter.setListener(new RecyclerViewAdapter.MyMeetingListener() {
+        meetingsAdapter.setListener(new MeetingsAdapter.MyMeetingListener() {
             @Override
             public void onMeetingClicked(int position, View view) {
+                Meeting meeting = chosenMeetings.get(position);
                 Toast.makeText(getActivity(), chosenMeetings.get(position).getMeetingName(), Toast.LENGTH_SHORT).show();
-                callback.onButtonMeetingClicked(false);
+
+                MainActivity mainActivity = (MainActivity)getActivity();
+                MeetingPageFragment meetingFragment = new MeetingPageFragment(meeting);
+
+                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+                if(user != null) //check if user is loged in
+                {
+                    mainActivity.navigateToPageFragment(meetingFragment);
+                } else {
+                    mainActivity.navigateToPageFragment(new LoginFragment(meetingFragment));
+                }
             }
         });
 
         // 3) attache logic class to the View
-        recyclerView.setAdapter(recyclerViewAdapter);
+        recyclerView.setAdapter(meetingsAdapter);
         return root;
     }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof ListActionCallback) {
-            callback = (ListActionCallback) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement SampleCallback");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        callback = null;
-    }
+//
+//    @Override
+//    public void onAttach(Context context) {
+//        super.onAttach(context);
+//        if (context instanceof ListActionCallback) {
+//            callback = (ListActionCallback) context;
+//        } else {
+//            throw new RuntimeException(context.toString()
+//                    + " must implement SampleCallback");
+//        }
+//    }
+//
+//    @Override
+//    public void onDetach() {
+//        super.onDetach();
+//        callback = null;
+//    }
 
     public void getMeetingList(List<Meeting> meetings){
         chosenMeetings = meetings;
-        recyclerViewAdapter.refreshMeetingsList(chosenMeetings);
+        meetingsAdapter.readData();
     }
 }

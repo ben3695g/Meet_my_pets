@@ -2,7 +2,6 @@ package com.example.meetmypets.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -12,7 +11,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,18 +18,14 @@ import android.os.Looper;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.meetmypets.Meeting;
+import com.example.meetmypets.model.Meeting;
 import com.example.meetmypets.R;
-import com.example.meetmypets.fragments.CurrentMeeting;
-import com.example.meetmypets.fragments.LoginFragment;
+import com.example.meetmypets.fragments.MeetingsMapFragment;
 import com.example.meetmypets.fragments.MeetingListFragment;
-import com.example.meetmypets.fragments.MeetingPageFragment;
-import com.example.meetmypets.fragments.NewMeetingFragment;
 import com.example.meetmypets.fragments.SettingsFragment;
 import com.example.meetmypets.fragments.Splash;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -51,16 +45,17 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import me.ibrahimsn.lib.SmoothBottomBar;
 
-public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback,GoogleMap.OnInfoWindowClickListener, MeetingListFragment.ListActionCallback, OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback,GoogleMap.OnInfoWindowClickListener,  OnMapReadyCallback {
 
     private MeetingListFragment listFragment;
+    private MeetingsMapFragment mapFragment2;
+    private SettingsFragment settingFragment;
     private SupportMapFragment mapFragment;
+    private SmoothBottomBar smoothBottomBar;
     private GoogleMap map;
     final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private FusedLocationProviderClient fusedLocationClient;
@@ -68,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private boolean userIsLoggedIn, isMapReady, isMapLoaded =false, isCameraMoved =false;
     private  List<Meeting> mapFragmentMeetings;
     private int previousCase = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,10 +78,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     new String[] { Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION },
                     MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
-        final SmoothBottomBar smoothBottomBar = findViewById(R.id.bottomBar);
+        smoothBottomBar = findViewById(R.id.bottomBar);
         smoothBottomBar.setVisibility(View.INVISIBLE);
         listFragment = new MeetingListFragment();
-
+        mapFragment2 = new MeetingsMapFragment();
+        settingFragment = new SettingsFragment();
         // temporary simulation of async call for DB
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
@@ -97,18 +94,19 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
 
         mapFragment = SupportMapFragment.newInstance();
+//todo why is \/ line 103
 
-        getSupportFragmentManager().beginTransaction().add(R.id.mainLayout, new Splash(listFragment),"splash").commit();
+        navigateToPageFragment(new Splash(listFragment));
+        initTabFragment(listFragment);
 
         smoothBottomBar.setOnItemSelectedListener(position -> {
             switch (position) {
                 case 0:
-                    smoothBottomBar.getItemActiveIndex();
-                    handleFragment(listFragment,"Meetings",0);
+                    switchToTabFragment(listFragment);
                     break;
                 case 1:
                     isCameraMoved =false;
-                    handleFragment(mapFragment, "Map",1);
+                    switchToTabFragment(mapFragment);
                     mapFragment.getMapAsync(this);
                     if (!isMapLoaded){
 
@@ -117,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     }
                     break;
                 case 2:
-                    handleFragment(new SettingsFragment(), "Settings",2);//LogInFragment
+                    switchToTabFragment(settingFragment);
                     break;
             }
             return false;
@@ -125,42 +123,29 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     }
 
-
-    void handleFragment(Fragment fragment, String fragmentName,int futureCase) {
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        if(previousCase>futureCase) {
-            ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
-        }else{
-            ft.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left);
-        }
-        previousCase =futureCase;
-        ft.replace(R.id.flFragment, fragment, fragmentName);;
-        ft.commit();
-    }
-
-    void handleNonSmoothBottomBarFragment(String fragment) {
-        FragmentTransaction ft , ftt;
-                ft = getSupportFragmentManager().beginTransaction();
-        ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
-        if(true)//check if user is loged in
-        {
-            if (fragment == "MeetingPageFragment") {
-                ft.replace(R.id.mainLayout, new MeetingPageFragment(), "MeetingPageFragment").addToBackStack("MeetingPageFragment");
-               // ftt = getSupportFragmentManager().beginTransaction();
-               // ftt.replace(R.id.chatFragment, new CurrentMeeting(), "CurrentMeeting");;
-
-                } else {
-                ft.replace(R.id.mainLayout, new NewMeetingFragment(), "NewMeetingFragment").addToBackStack("NewMeetingFragment");
-            }
-        }else{
-            ft.replace(R.id.mainLayout, new LoginFragment(), "LoginFragment").addToBackStack("LoginFragment");
-        }
-        ft.commit();
-        //ftt.commit();
-    }
-    @Override
-    public void onButtonMeetingClicked(boolean isNewMeeting) {
-        handleNonSmoothBottomBarFragment("MeetingPageFragment");
+//    void handleNonSmoothBottomBarFragment(String fragment) {
+//        FragmentTransaction ft , ftt;
+//                ft = getSupportFragmentManager().beginTransaction();
+//        ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
+//        if(true)//check if user is loged in
+//        {
+//            if (fragment == "MeetingPageFragment") {
+//                ft.replace(R.id.mainLayout, new MeetingPageFragment(), "MeetingPageFragment").addToBackStack("MeetingPageFragment");
+//               // ftt = getSupportFragmentManager().beginTransaction();
+//               // ftt.replace(R.id.chatFragment, new CurrentMeeting(), "CurrentMeeting");;
+//
+//                } else {
+//                ft.replace(R.id.mainLayout, new NewMeetingFragment(), "NewMeetingFragment").addToBackStack("NewMeetingFragment");
+//            }
+//        }else{
+//            ft.replace(R.id.mainLayout, new LoginFragment(), "LoginFragment").addToBackStack("LoginFragment");
+//        }
+//        ft.commit();
+//        //ftt.commit();
+   // }
+//    @Override
+//    public void onButtonMeetingClicked(boolean isNewMeeting) {
+//        handleNonSmoothBottomBarFragment("MeetingPageFragment");
 //        FragmentTransaction ft , ftt;
 //        ft = getSupportFragmentManager().beginTransaction();
 //        ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
@@ -170,12 +155,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 //        ftt.replace(R.id.chatFragment, new CurrentMeeting(), "CurrentMeeting");;
 //        ftt.commit();
 
-    }
+    //}
 
-    @Override
-    public void onButtonNewMeetingClicked(boolean isNewMeeting) {
-        handleNonSmoothBottomBarFragment("NewMeetingFragment");
-    }
+//    @Override
+//    public void onButtonNewMeetingClicked(boolean isNewMeeting) {
+//        handleNonSmoothBottomBarFragment("NewMeetingFragment");
+//    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -424,5 +409,42 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
          mapFragmentMeetings =meetings;
          listFragment.getMeetingList(meetings);
 
+     }
+
+    void switchToTabFragment(Fragment targetFragment) {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        int futureCase = smoothBottomBar.getItemActiveIndex();
+        if(previousCase>futureCase) {
+            ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
+        }else{
+            ft.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left);
+        }
+        previousCase =futureCase;
+        ft.replace(R.id.flFragment, targetFragment, targetFragment.getClass().getName());;
+        ft.commit();
+    }
+
+    void initTabFragment(Fragment targetFragment) {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.flFragment, targetFragment, targetFragment.getClass().getName());;
+        ft.commit();
+    }
+
+     public void navigateToTabFragment(Fragment fragmentToRemove) {
+         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+         ft.remove(fragmentToRemove);
+         ft.commit();
+         runOnUiThread(() -> {
+             smoothBottomBar.setVisibility(View.VISIBLE);
+             smoothBottomBar.setItemActiveIndex(0);
+         });
+     }
+
+     public void navigateToPageFragment(Fragment fragmentToNavigate) {
+         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+         ft.replace(R.id.mainLayout, fragmentToNavigate);
+         ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
+         ft.addToBackStack(fragmentToNavigate.getClass().getName());
+         ft.commit();
      }
 }

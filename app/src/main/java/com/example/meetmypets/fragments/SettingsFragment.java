@@ -26,7 +26,7 @@ public class SettingsFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 getParentFragmentManager().beginTransaction().replace(R.id.flFragment,
-                        new LoginFragment(), "LoginFragment")
+                        new LoginFragment(null), "LoginFragment")
                         .addToBackStack("LoginFragment").commit();
             }
         });

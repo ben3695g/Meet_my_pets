@@ -1,19 +1,16 @@
 package com.example.meetmypets.fragments;
 
-import android.app.Activity;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.meetmypets.R;
-
-import me.ibrahimsn.lib.SmoothBottomBar;
+import com.example.meetmypets.activities.MainActivity;
 
 public class Splash extends Fragment {
 
@@ -34,23 +31,16 @@ public class Splash extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Fragment me = this;
         Thread splash_screen = new Thread() {
             public void run() {
-                Activity activity = getActivity();
-                SmoothBottomBar smoothBottomBar = activity.findViewById(R.id.bottomBar);
-
-                try {
+                 try {
                     sleep(1500);
-
                 } catch(Exception e) {
                     e.printStackTrace();
-
                 } finally {
-                    FragmentTransaction ft = getParentFragmentManager().beginTransaction();
-                    Fragment fragment = getParentFragmentManager().findFragmentByTag("splash");
-                    ft.remove(fragment).replace(R.id.flFragment, firstFragment, "Meetings");
-                    ft.commit();
-                    activity.runOnUiThread(() -> smoothBottomBar.setVisibility(View.VISIBLE));
+                    MainActivity mainActivity = (MainActivity)getActivity();
+                    mainActivity.navigateToTabFragment(me);
                 }
             }
         };

@@ -1,4 +1,4 @@
-package com.example.meetmypets;
+package com.example.meetmypets.model;
 
 import java.util.List;
 

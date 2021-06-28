@@ -1,6 +1,5 @@
 package com.example.meetmypets.fragments;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -13,7 +12,6 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -24,16 +22,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.meetmypets.R;
 import com.example.meetmypets.adapter.MessagesAdapter;
 import com.example.meetmypets.model.Message;
-import com.example.meetmypets.model.Meeting;
+import com.example.meetmypets.model.MeetingToDelete;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
@@ -41,7 +37,6 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 
@@ -50,7 +45,7 @@ public class CurrentMeeting extends Fragment {
     private MessagesAdapter adapter = null;
     RecyclerView rvMessages;
     SharedPreferences sp;
-    Meeting meeting;
+    MeetingToDelete meeting;
     List<Message> messageList = new ArrayList<>();
     DatabaseReference meetingRef = null;
     FloatingActionButton fabSend;
@@ -79,7 +74,7 @@ public class CurrentMeeting extends Fragment {
                 .child("Messages");
 
         Gson gson = new Gson();
-        Type type = new TypeToken<Meeting>() {
+        Type type = new TypeToken<MeetingToDelete>() {
         }.getType();
         meeting = gson.fromJson(json, type);
         rvMessages=view.findViewById(R.id.rvMessages);
