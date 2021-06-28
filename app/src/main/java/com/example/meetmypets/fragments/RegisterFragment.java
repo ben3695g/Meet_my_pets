@@ -23,6 +23,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.meetmypets.R;
 import com.example.meetmypets.activities.MainActivity;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
@@ -31,8 +32,13 @@ import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
+
+import java.util.UUID;
 
 public class RegisterFragment extends Fragment {
     Button btnRegister;
@@ -47,6 +53,7 @@ public class RegisterFragment extends Fragment {
     int PET_IMAGE_REQ_CODE = 888;
     boolean userImage=true;
     private Fragment fragmentToGo;
+    FirebaseUser user = null;
 
     public RegisterFragment(Fragment fragmentToGo) {
         this.fragmentToGo = fragmentToGo;
@@ -92,7 +99,7 @@ public class RegisterFragment extends Fragment {
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
             intent.setType("image/*");
 
-           startActivityForResult(intent,USER_IMAGE_REQ_CODE);
+            startActivityForResult(intent,USER_IMAGE_REQ_CODE);
 
         });
 
@@ -109,7 +116,13 @@ public class RegisterFragment extends Fragment {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode==USER_IMAGE_REQ_CODE && resultCode== Activity.RESULT_OK) {
             if (data!=null){
+                Log.d("galos test", "user image on result");
+
                 userImageUri=data.getData();
+                Glide.with(this)
+                        .load(userImageUri)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .into(ivUser);
                 CropImage.activity(userImageUri)
                         .setCropShape(CropImageView.CropShape.OVAL)
                         .setAspectRatio(1,1)
@@ -119,7 +132,13 @@ public class RegisterFragment extends Fragment {
         }
         if (requestCode==PET_IMAGE_REQ_CODE && resultCode== Activity.RESULT_OK) {
             if (data!=null){
+                Log.d("galos test", "user pet on result");
+
                 petImageUri=data.getData();
+                Glide.with(this)
+                        .load(petImageUri)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .into(ivPet);
                 CropImage.activity(petImageUri)
                         .setCropShape(CropImageView.CropShape.OVAL)
                         .setAspectRatio(1,1)
@@ -130,21 +149,16 @@ public class RegisterFragment extends Fragment {
         }
         if ( resultCode== CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             CropImage.ActivityResult result= CropImage.getActivityResult(data);
+            Log.d("galos test", "crop on result");
+
             if (result!=null){
                 userImageUri=data.getData();
                 if(userImage) {
                     userImageUri = data.getData();
-                    Glide.with(this)
-                            .load(userImageUri)
-                            .diskCacheStrategy(DiskCacheStrategy.ALL)
-                            .into(ivUser);
-                    userImageUri = data.getData();
+
                 } else {
-                  petImageUri=data.getData();
-                    Glide.with(this)
-                            .load(petImageUri)
-                            .diskCacheStrategy(DiskCacheStrategy.ALL)
-                            .into(ivPet);
+                    petImageUri=data.getData();
+
                 }
             }
         }
@@ -176,13 +190,14 @@ public class RegisterFragment extends Fragment {
         if(userImageUri==null)
         {
             Toast.makeText(requireContext(), "Must select image for user!", Toast.LENGTH_SHORT).show();
-        return  false;
+            return  false;
         }
         if(petImageUri==null)
         {
             Toast.makeText(requireContext(), "Must select image for pet!", Toast.LENGTH_SHORT).show();
-       return false;
+            return false;
         }
+        Log.d("galos test", "return true");
         return true;
     }
 
@@ -194,22 +209,25 @@ public class RegisterFragment extends Fragment {
 
         mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                Log.d("auth", "signInWithCredential:success");
+
+                Log.d("galos test auth", "signInWithCredential:success");
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                 if (user != null) {
-                    usersRef.child(user.getUid()).child("Details").child("LastSeen")
+                    FirebaseDatabase.getInstance().getReference()
+                            .child("Users").child(user.getUid()).child("Details").child("LastSeen")
                             .setValue(ServerValue.TIMESTAMP);
                     moveToNextOrMain();
                 }
             } else {
-                Log.d("auth", "signInWithCredential:failure", task.getException());
                 if (task.getException() instanceof FirebaseAuthInvalidUserException) {
-                    //TODO move to register
+                    Log.d("galos test auth", "FirebaseAuthInvalidUserException");
                     doRegister(email, password , name);
 
-                } else if (task.getException() instanceof FirebaseAuthInvalidCredentialsException)
+                } else if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
+                    Log.d("galos test auth", "already_registerd_wrong_code");
                     Toast.makeText(requireContext(),
                             R.string.already_registerd_wrong_code, Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -220,6 +238,26 @@ public class RegisterFragment extends Fragment {
                 Log.d("auth", "user created successfully");
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                 if (user != null) {
+                    Log.d("galos test auth", "before uploadImages");
+                    uploadImages(name);
+                }
+            }
+        });
+    }
+
+    private void uploadImages(String name) {
+        Log.d("galos test auth", "called uploadImages");
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            final StorageReference userImageRef = FirebaseStorage.getInstance().getReference()
+                    .child("users").child(user.getUid()).child("user_images/image");
+            final StorageReference petImageRef = FirebaseStorage.getInstance().getReference()
+                    .child("users").child(user.getUid()).child("pet_images/image");
+            userImageRef.putFile(userImageUri).addOnSuccessListener(taskSnapshot -> {
+                Log.d("galos test auth", "first image uploaded");
+
+                userImageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                    Log.d("galos test auth", "first image url: " + uri.toString());
                     usersRef.child(user.getUid()).child("Details").child("Name").
                             setValue(name);
                     usersRef.child(user.getUid()).child("Details").child("Email")
@@ -228,31 +266,36 @@ public class RegisterFragment extends Fragment {
                             .setValue(ServerValue.TIMESTAMP);
                     usersRef.child(user.getUid()).child("Details").child("LastSeen")
                             .setValue(ServerValue.TIMESTAMP);
-                    // Eli - Add here whatever data you need
+                    usersRef.child(user.getUid()).child("Details").child("userImage")
+                            .setValue(uri.toString());
 
-                    SharedPreferences.Editor editor = sp.edit();
-                    editor.putString("Name", etName.getText().toString());
-                    editor.putString("Email", etEmail.getText().toString());
-                    editor.apply();
-                    UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                            .setDisplayName(etName.getText().toString())
-                            .build();
+                    usersRef.child(user.getUid()).child("Details").child("userImage").setValue(uri.toString());
+                    petImageRef.putFile(petImageUri).addOnSuccessListener(taskSnapshot2 -> {
+                        Log.d("galos test auth", "second image uploaded");
+                        petImageRef.getDownloadUrl().addOnSuccessListener(uri2 -> {
+                            usersRef.child(user.getUid()).child("Details").child("petImage")
+                                    .setValue(uri2.toString());
+                            Log.d("galos test auth", "second image url: " + uri2.toString());
+                            usersRef.child(user.getUid()).child("Details").child("petImage").setValue(uri2.toString());
+                            SharedPreferences.Editor editor = sp.edit();
+                            editor.putString("Name", etName.getText().toString());
+                            editor.putString("Email", etEmail.getText().toString());
+                            editor.apply();
+                            Log.d("firebase", "User profile updated.");
+                            moveToNextOrMain();
+                        });
+                    });
+                });
+            });
 
-                    user.updateProfile(profileUpdates)
-                            .addOnCompleteListener(task1 -> {
-                                if (task1.isSuccessful()) {
-                                    Log.d("firebase", "User profile updated.");
-                                    moveToNextOrMain();
-                                }
-                            });
-                }
-            }
-        });
+        }
     }
 
     private void moveToNextOrMain() {
         MainActivity mainActivity = (MainActivity)getActivity();
-        if (fragmentToGo != null) mainActivity.navigateToPageFragment(fragmentToGo);
-        else mainActivity.navigateToTabFragment(this);
+        if (fragmentToGo != null)
+            mainActivity.navigateToPageFragment(fragmentToGo);
+        else
+            mainActivity.navigateToTabFragment(this);
     }
 }
