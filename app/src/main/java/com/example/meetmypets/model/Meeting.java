@@ -20,11 +20,12 @@ public class Meeting {
     Boolean enablePassword;
     String meetingPassword;
 
-    public Meeting(String meetingName, List<String> subscribedUserIds, int distance, LatLng meetingLocation) {
+    public Meeting(String meetingName, String meetingDescription, List<String> subscribedUserIds, int distance, LatLng meetingLocation) {
         this.meetingName = meetingName;
         this.subscribedUserIds = subscribedUserIds;
         this.meetingLocation = meetingLocation;
         this.distance = distance;
+        this.meetingDescription=meetingDescription;
     }
 
 //    public Meeting(String meetingId, String meetingName, String meetingDescription, List<String> subscribedUserIds,

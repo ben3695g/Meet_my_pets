@@ -19,6 +19,7 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.meetmypets.adapter.MeetingsAdapter;
 import com.example.meetmypets.model.Meeting;
 import com.example.meetmypets.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -212,6 +213,9 @@ public class MeetingsMapFragment extends Fragment implements GoogleMap.OnInfoWin
         return BitmapDescriptorFactory.fromBitmap(smallMarker);
     }
 
+    public void updateMeetingList(List<Meeting> mapFragmentMeetings){
+        // tbd
+    }
 
     private void createMarker(Meeting meeting, int iconSize,int iconId,LatLng point) {
         BitmapDescriptor icon = createIcon(iconId, iconSize);

@@ -107,7 +107,6 @@ public class LoginFragment extends Fragment {
                     Log.d("auth", "signInWithCredential:failure", task.getException());
                     if (task.getException() instanceof FirebaseAuthInvalidUserException) {
                         Toast.makeText(context, R.string.no_such_user_please_register, Toast.LENGTH_SHORT).show();
-                        //TODO move to register
                         moveToRegister();
                     } else if (task.getException() instanceof FirebaseAuthInvalidCredentialsException)
                         Toast.makeText(context, R.string.wrong_code_entered, Toast.LENGTH_SHORT).show();

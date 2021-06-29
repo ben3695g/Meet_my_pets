@@ -22,6 +22,7 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.meetmypets.adapter.MeetingsAdapter;
 import com.example.meetmypets.fragments.MeetingsFragment;
 import com.example.meetmypets.model.Meeting;
 import com.example.meetmypets.R;
@@ -30,6 +31,7 @@ import com.example.meetmypets.fragments.MeetingListFragment;
 import com.example.meetmypets.fragments.SettingsFragment;
 import com.example.meetmypets.fragments.Splash;
 import com.example.meetmypets.model.MeetingToDelete;
+import com.example.meetmypets.model.MeetingsDataLayer;
 import com.example.meetmypets.model.Message;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -87,38 +89,25 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
 
+        mapFragment2 = new MeetingsMapFragment();
+        MeetingsAdapter meetingsAdapter = new MeetingsAdapter();
+        MeetingsDataLayer dataLayer = new MeetingsDataLayer();
 
+        dataLayer.registerForData(new MeetingsDataLayer.MeetingsDataListener() {
+            @Override
+            public void onMeetingDataChanged(List<Meeting> meetings) {
+                runOnUiThread(() -> {
+                    meetingsAdapter.refreshMeetingsList(meetings);
+                    mapFragment2.updateMeetingList(meetings);
+                });
+            }
+        });
 
         smoothBottomBar = findViewById(R.id.bottomBar);
         smoothBottomBar.setVisibility(View.INVISIBLE);
-        listFragment = new MeetingListFragment();
-        mapFragment2 = new MeetingsMapFragment();
+        listFragment = new MeetingListFragment(meetingsAdapter);
 
         settingFragment = new SettingsFragment();
-
-        // temporary simulation of async call for DB
-        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                getMeetingsListFromFireBase();
-                mapFragment2 = new MeetingsMapFragment();
-                mapFragment2.setMapFragmentMeetings(mapFragmentMeetings);
-            }
-        }, 3000);
-//        DatabaseReference reference =FirebaseDatabase.getInstance().getReference().child("Meetings");
-//        reference.child("-MdNWkxzyZgoE9QMBsci").child("meetingCreationTim").removeValue();
-//        reference.child("-MdNWkxzyZgoE9QMBsci").child("meetingName").removeValue();
-//        reference.child("-MdNWkxzyZgoE9QMBsci").child("meetingDescription").removeValue();
-//        reference.child("-MdNWkxzyZgoE9QMBsci").child("meetingLatLng").removeValue();
-//        reference.child("-MdNWkxzyZgoE9QMBsci").child("meetingCreationTim").removeValue();
-//        reference.child("-MdNWkxzyZgoE9QMBsci").child("meetingUsers").child("V2D6wd6gNwPWlTn0S40OSphKu042").removeValue();
-
-
-//                    meetingRef.child(id).child("meetingDescription").setValue(meetingDescription.getText().toString());
-//                    meetingRef.child(id).child("meetingLatLng").setValue(locationLatlng);
-//                    meetingRef.child(id).child("meetingCreationTim").child("creationTimeStamp").setValue(ServerValue.TIMESTAMP);
-//                    meetingRef.child(id).child("meetingUsers").child(mAuth.getUid()).child("name").setValue(mAuth.getCurrentUser().getDisplayName());
-
 
         mapFragment = SupportMapFragment.newInstance();
 
@@ -148,45 +137,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         });
 
     }
-
-//    void handleNonSmoothBottomBarFragment(String fragment) {
-//        FragmentTransaction ft , ftt;
-//                ft = getSupportFragmentManager().beginTransaction();
-//        ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
-//        if(true)//check if user is loged in
-//        {
-//            if (fragment == "MeetingPageFragment") {
-//                ft.replace(R.id.mainLayout, new MeetingPageFragment(), "MeetingPageFragment").addToBackStack("MeetingPageFragment");
-//               // ftt = getSupportFragmentManager().beginTransaction();
-//               // ftt.replace(R.id.chatFragment, new CurrentMeeting(), "CurrentMeeting");;
-//
-//                } else {
-//                ft.replace(R.id.mainLayout, new NewMeetingFragment(), "NewMeetingFragment").addToBackStack("NewMeetingFragment");
-//            }
-//        }else{
-//            ft.replace(R.id.mainLayout, new LoginFragment(), "LoginFragment").addToBackStack("LoginFragment");
-//        }
-//        ft.commit();
-//        //ftt.commit();
-   // }
-//    @Override
-//    public void onButtonMeetingClicked(boolean isNewMeeting) {
-//        handleNonSmoothBottomBarFragment("MeetingPageFragment");
-//        FragmentTransaction ft , ftt;
-//        ft = getSupportFragmentManager().beginTransaction();
-//        ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
-//        ft.replace(R.id.mainLayout, new MeetingPageFragment(), "MeetingPageFragment").addToBackStack("MeetingPageFragment");
-//        ft.commit();
-//        ftt = getSupportFragmentManager().beginTransaction();
-//        ftt.replace(R.id.chatFragment, new CurrentMeeting(), "CurrentMeeting");;
-//        ftt.commit();
-
-    //}
-
-//    @Override
-//    public void onButtonNewMeetingClicked(boolean isNewMeeting) {
-//        handleNonSmoothBottomBarFragment("NewMeetingFragment");
-//    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -381,61 +331,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             }
         }
     }
-
-    public void getMeetingsListFromFireBase(){
-         List<String> users = new ArrayList<String>();
-         users.add("a");
-         users.add("aa");
-         List<String> userss = new ArrayList<String>();
-            users.add("a");
-            users.add("aa");
-            users.add("a");
-            users.add("aa");
-         LatLng point1 = new LatLng(31.776507546255935, 34.62478162343042);
-         LatLng point2 = new LatLng(31.775506291568767, 34.6270703705988);
-         LatLng point3 = new LatLng(31.775144063934704, 34.63015265240772);
-         LatLng point4 = new LatLng(31.775790297015536, 34.62912524059108);
-         LatLng point5 = new LatLng(31.772750968373543, 34.63018607123547);
-         LatLng point6 = new LatLng(31.769555361922798, 34.624096677629794);
-         LatLng point7 = new LatLng(31.780400396831684, 34.62671999065109);
-         LatLng point8 = new LatLng(31.772459825243235, 34.623077619318515);
-         LatLng point9 = new LatLng(31.78410689193512, 34.63183210435391);
-         LatLng point10 = new LatLng(31.78288560817526, 34.62245156086419);
-         LatLng point11 = new LatLng(31.783684597813586, 34.62356374127263);
-         LatLng point12 = new LatLng(31.768694958076537, 34.62949570367687);
-         LatLng point13 = new LatLng(31.77628097704576, 34.642746431905756);
-         LatLng point14 = new LatLng(31.77851285073171, 34.63689206480455);
-         LatLng point15 = new LatLng(31.77438521863641, 34.6299922798979);
-         LatLng point16 = new LatLng(31.773634667633004, 34.63496384552723);
-         LatLng point17 = new LatLng(31.7684601205635, 34.626252256015185);
-         LatLng point18 = new LatLng(31.77009916536245, 34.62246552296086);
-
-
-
-         //new Location((31.776507546255935, 34.62478162343042));
-         List<Meeting> meetings = new ArrayList<>();
-         meetings.add(new Meeting("a1", users,1500,point1));
-         meetings.add(new Meeting("b2", users,200,point2));
-         meetings.add(new Meeting("c3", users,10,point3));
-         meetings.add(new Meeting("d4", users,10111,point4));
-         meetings.add(new Meeting("e5", users,1990,point5));
-         meetings.add(new Meeting("f6", users,30,point6));
-         meetings.add(new Meeting("a7", users,1500,point7));
-         meetings.add(new Meeting("b8", users,200,point8));
-         meetings.add(new Meeting("c9", users,10,point9));
-         meetings.add(new Meeting("d10", users,10111,point10));
-         meetings.add(new Meeting("e11", users,1990,point11));
-         meetings.add(new Meeting("f12", users,30,point12));
-         meetings.add(new Meeting("a13", users,1500,point13));
-         meetings.add(new Meeting("b14", users,200,point14));
-         meetings.add(new Meeting("c15", users,10,point15));
-         meetings.add(new Meeting("d16", userss,10111,point16));
-         meetings.add(new Meeting("e117", userss,1990,point17));
-         meetings.add(new Meeting("f18", userss,30,point18));
-         mapFragmentMeetings =meetings;
-         listFragment.getMeetingList(meetings);
-
-     }
 
     void switchToTabFragment(Fragment targetFragment) {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();

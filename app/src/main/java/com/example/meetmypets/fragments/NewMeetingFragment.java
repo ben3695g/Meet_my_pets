@@ -107,7 +107,6 @@ public class NewMeetingFragment extends Fragment implements GoogleMap.OnMapClick
                     mAuth = FirebaseAuth.getInstance();
                     username=  mAuth.getCurrentUser().getDisplayName();
 
-
                     String id = meetingRef.push().getKey();
                     Map<String, Object> childUpdates = new HashMap<>();
                     childUpdates.put(id+"/meetingName", name);
@@ -116,11 +115,6 @@ public class NewMeetingFragment extends Fragment implements GoogleMap.OnMapClick
                     childUpdates.put(id+"/meetingCreationTime", ServerValue.TIMESTAMP);
                     childUpdates.put(id+"/meetingUsers/"+mAuth.getUid()+"/name", username);
                     meetingRef.updateChildren(childUpdates);
-//                    meetingRef.child(id).child("meetingName").setValue(name);
-//                    meetingRef.child(id).child("meetingDescription").setValue(description);
-//                    meetingRef.child(id).child("meetingLatLng").setValue(locationLatlng);
-//                    meetingRef.child(id).child("meetingCreationTime").setValue(ServerValue.TIMESTAMP);
-//                    meetingRef.child(id).child("meetingUsers").child(mAuth.getUid()).child("name").setValue(username);
 
                     moveToMain();
                 }
