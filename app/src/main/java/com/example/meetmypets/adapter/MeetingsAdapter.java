@@ -147,8 +147,8 @@ public class MeetingsAdapter extends RecyclerView.Adapter<MeetingsAdapter.Meetin
         getData();
     }
 
-//    public void refreshMeetingsList(List<Meeting> meetings){
-//        chosenMeetings =meetings;
-//        notifyDataSetChanged();
-//    }
+    public void refreshMeetingsList(List<Meeting> meetings){
+        chosenMeetings =meetings;
+        notifyDataSetChanged();
+    }
 }

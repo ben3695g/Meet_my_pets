@@ -22,12 +22,15 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.meetmypets.fragments.MeetingsFragment;
 import com.example.meetmypets.model.Meeting;
 import com.example.meetmypets.R;
 import com.example.meetmypets.fragments.MeetingsMapFragment;
 import com.example.meetmypets.fragments.MeetingListFragment;
 import com.example.meetmypets.fragments.SettingsFragment;
 import com.example.meetmypets.fragments.Splash;
+import com.example.meetmypets.model.MeetingToDelete;
+import com.example.meetmypets.model.Message;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -43,6 +46,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        FirebaseDatabase.getInstance().setLogLevel(Logger.Level.DEBUG);
         int resultFineLocation = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
         int resultCoarseLocation = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
         if (resultFineLocation != PackageManager.PERMISSION_GRANTED && resultCoarseLocation != PackageManager.PERMISSION_GRANTED) {
@@ -78,23 +86,41 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     new String[] { Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION },
                     MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
+
+
+
         smoothBottomBar = findViewById(R.id.bottomBar);
         smoothBottomBar.setVisibility(View.INVISIBLE);
         listFragment = new MeetingListFragment();
         mapFragment2 = new MeetingsMapFragment();
+
         settingFragment = new SettingsFragment();
+
         // temporary simulation of async call for DB
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
                 getMeetingsListFromFireBase();
-
+                mapFragment2 = new MeetingsMapFragment();
+                mapFragment2.setMapFragmentMeetings(mapFragmentMeetings);
             }
         }, 3000);
+//        DatabaseReference reference =FirebaseDatabase.getInstance().getReference().child("Meetings");
+//        reference.child("-MdNWkxzyZgoE9QMBsci").child("meetingCreationTim").removeValue();
+//        reference.child("-MdNWkxzyZgoE9QMBsci").child("meetingName").removeValue();
+//        reference.child("-MdNWkxzyZgoE9QMBsci").child("meetingDescription").removeValue();
+//        reference.child("-MdNWkxzyZgoE9QMBsci").child("meetingLatLng").removeValue();
+//        reference.child("-MdNWkxzyZgoE9QMBsci").child("meetingCreationTim").removeValue();
+//        reference.child("-MdNWkxzyZgoE9QMBsci").child("meetingUsers").child("V2D6wd6gNwPWlTn0S40OSphKu042").removeValue();
+
+
+//                    meetingRef.child(id).child("meetingDescription").setValue(meetingDescription.getText().toString());
+//                    meetingRef.child(id).child("meetingLatLng").setValue(locationLatlng);
+//                    meetingRef.child(id).child("meetingCreationTim").child("creationTimeStamp").setValue(ServerValue.TIMESTAMP);
+//                    meetingRef.child(id).child("meetingUsers").child(mAuth.getUid()).child("name").setValue(mAuth.getCurrentUser().getDisplayName());
 
 
         mapFragment = SupportMapFragment.newInstance();
-//todo why is \/ line 103
 
         navigateToPageFragment(new Splash(listFragment));
         initTabFragment(listFragment);
@@ -106,11 +132,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     break;
                 case 1:
                     isCameraMoved =false;
-                    switchToTabFragment(mapFragment);
-                    mapFragment.getMapAsync(this);
+                    switchToTabFragment(mapFragment2);
+                    //mapFragment.getMapAsync(this);
                     if (!isMapLoaded){
 
-                        hookupLocation();
+//                        hookupLocation();
                         isMapLoaded =true;
                     }
                     break;
@@ -267,7 +293,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         if (map != null && mapFragmentMeetings != null) {
             for (Meeting meeting :  mapFragmentMeetings) {
                 LatLng latLng = meeting.getMeetingLocation();
-                createMarker(meeting,100,  R.drawable.icons8_dog_park_50 , latLng);
+                createMarker(meeting,100,  R.drawable.icons8_dog_walking_50, latLng);
             }
 
         }

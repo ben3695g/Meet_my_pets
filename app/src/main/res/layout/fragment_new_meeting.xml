@@ -1,32 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#72BFB8"
+    android:background="#ACCC9B"
     android:orientation="vertical"
+    android:clickable="true"
     tools:context=".fragments.MeetingPageFragment">
 
+    <LinearLayout
+        android:id="@+id/newMeetingSummery"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:layout_weight="0.2"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+
+        <EditText
+            android:id="@+id/newMeetingName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="new meeting name"
+            ></EditText>
+
+        <EditText
+            android:id="@+id/newMeetingDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="meeting description"
+            android:maxLines="4"
+            android:textSize="12sp"></EditText>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="top"
         android:layout_weight="0.2"
-        android:orientation="vertical">
-        >
-
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="new meeting name"></EditText>
-
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:maxLines="4"
-            android:text="meeting description"></EditText>
+        android:orientation="horizontal">
+        <TextView
+            android:text="location: "
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"></TextView>
+        <TextView
+            android:id="@+id/locationLatlng"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"></TextView>
+    </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -36,40 +61,31 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/showOnMapBtn"
+                android:id="@+id/createMeetingBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="show on map"
+                android:backgroundTint="#6E9E54"
+                android:text="create"
 
                 ></Button>
-
-            <Button
-                android:id="@+id/muteNotificationsBtn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="mute notifications"
-
-                ></Button>
-
-            <Button
-                android:id="@+id/unsubscribeFromMeetingBtn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="unsubscribe"
-
-                ></Button>
-
         </LinearLayout>
-
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="pick location on map"></TextView>
     </LinearLayout>
-
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:id="@+id/map_container"
+        app:layout_constraintTop_toBottomOf="@+id/newMeetingSummery">
+        <com.google.android.gms.maps.MapView
+            android:id="@+id/newMeetingMapView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            />
+    </RelativeLayout>
 
-        ></LinearLayout>
-</LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

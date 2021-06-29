@@ -4,6 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:background="#FFFFFF"
+    android:backgroundTint="#ACCC9B"
     android:orientation="vertical"
 
     tools:context=".fragments.MeetingListFragment">
@@ -12,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#FFFFFF"
-        android:backgroundTint="@color/teal_700"
+        android:backgroundTint="#ACCC9B"
         android:orientation="horizontal"
         android:paddingTop="10dp"
         android:paddingBottom="10dp">
@@ -28,7 +30,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
 
-            android:backgroundTint="#003231"
+            android:backgroundTint="#6E9E54"
             android:text="name"></Button>
 
         <Button
@@ -36,14 +38,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:backgroundTint="#003231"
+            android:backgroundTint="#6E9E54"
             android:text="Distance"></Button>
         <Button
             android:id="@+id/sortByUsers"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:backgroundTint="#003231"
+            android:backgroundTint="#6E9E54"
             android:text="users"></Button>
     </LinearLayout>
 
@@ -59,6 +61,7 @@
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab"
+            android:src="@drawable/icons8_plus_math_24"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
@@ -67,7 +70,7 @@
             android:layout_marginRight="23dp"
             android:layout_marginBottom="22dp"
             android:contentDescription="new meeting"
-            app:backgroundTint="#CC003231"
+            app:backgroundTint="#CC6E9E54"
             app:elevation="1dp" />
 
     </RelativeLayout>

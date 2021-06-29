@@ -16,11 +16,20 @@ import com.example.meetmypets.model.Meeting;
 import com.example.meetmypets.R;
 import com.example.meetmypets.activities.MainActivity;
 import com.example.meetmypets.adapter.MeetingsAdapter;
+import com.example.meetmypets.model.MeetingToDelete;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Logger;
 
 import java.util.List;
+
+import static com.google.firebase.database.DatabaseReference.goOffline;
+import static com.google.firebase.database.DatabaseReference.goOnline;
 
 public class MeetingListFragment extends Fragment {
 
@@ -37,6 +46,7 @@ public class MeetingListFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getMeetingList(chosenMeetings);
 
     }
 
@@ -52,6 +62,24 @@ public class MeetingListFragment extends Fragment {
         RecyclerView recyclerView = root.findViewById(R.id.meetingsRecyclerView);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+       // FirebaseDatabase.getInstance().setLogLevel(Logger.Level.DEBUG);
+
+//        FirebaseOptions options = new FirebaseOptions.Builder()
+//                .setApiKey("<AIzaSyCqwBDIgYd42oXxjuqXEHX7408cwn2Qfxg>")
+//                .setDatabaseUrl("https://meet-my-pets-default-rtdb.europe-west1.firebasedatabase.app/")
+//                .setApplicationId("<meet-my-pets>")
+//                .build();
+//        FirebaseApp app = FirebaseApp.initializeApp(getContext(), options);
+
+
+
+//        FirebaseDatabase database = FirebaseDatabase.getInstance();
+//        DatabaseReference reference = database.getReference();;
+//        String id = reference.push().getKey();
+//        MeetingToDelete meeting = new MeetingToDelete();
+//        meeting.setId(id);
+//        meeting.setMeetingName("first name");
+//        reference.child(id).setValue(meeting);
 
 
         orderByName.setOnClickListener(new View.OnClickListener() {
@@ -142,6 +170,7 @@ public class MeetingListFragment extends Fragment {
 
     public void getMeetingList(List<Meeting> meetings){
         chosenMeetings = meetings;
-        meetingsAdapter.readData();
+        meetingsAdapter.refreshMeetingsList(chosenMeetings);
+        //meetingsAdapter.readData();
     }
 }

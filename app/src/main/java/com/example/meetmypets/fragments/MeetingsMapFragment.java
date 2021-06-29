@@ -10,7 +10,9 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
@@ -26,10 +28,13 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -37,9 +42,10 @@ import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.util.List;
 
-public class MeetingsMapFragment extends Fragment implements GoogleMap.OnInfoWindowClickListener, OnMapReadyCallback {
+public class MeetingsMapFragment extends Fragment implements GoogleMap.OnInfoWindowClickListener {
     private List<Meeting> mapFragmentMeetings;
     private GoogleMap map;
+    private MapView mMapView;
     private SupportMapFragment mapFragment;
     private boolean isMapReady,isMapLoaded =false, isCameraMoved =false;
     private FusedLocationProviderClient fusedLocationClient;
@@ -48,10 +54,49 @@ public class MeetingsMapFragment extends Fragment implements GoogleMap.OnInfoWin
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mapFragment = SupportMapFragment.newInstance();
-        mapFragment.getMapAsync(this);
+        //mapFragment = SupportMapFragment.newInstance();
+       // mapFragment.getMapAsync(this);
+    }
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View rootView = inflater.inflate(R.layout.fragment_map, container, false);
+
+        mMapView = (MapView) rootView.findViewById(R.id.mapView);
+        mMapView.onCreate(savedInstanceState);
+
+        mMapView.onResume(); // needed to get the map to display immediately
+
+        try {
+            MapsInitializer.initialize(getActivity().getApplicationContext());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        mMapView.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap mMap) {
+                map = mMap;
+
+                // For showing a move to my location button
+                //map.set MyLocationEnabled(true);
+
+                // For dropping a marker at a point on the Map
+//                refreshMarkers();
+//                map.setOnInfoWindowClickListener(this);
+                LatLng sydney = new LatLng(31.77009916536245, 34.62246552296086);
+                map.addMarker(new MarkerOptions().position(sydney).title("Marker Title").snippet("Marker Description"));
+
+                // For zooming automatically to the location of the marker
+                CameraPosition cameraPosition = new CameraPosition.Builder().target(sydney).zoom(14).build();
+                map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+            }
+        });
+        return rootView;
     }
 
+    public void setMapFragmentMeetings(List<Meeting> mapFragmentMeetings) {
+        this.mapFragmentMeetings = mapFragmentMeetings;
+    }
 //    @Override
 //    public View onCreateView(LayoutInflater inflater, ViewGroup container,
 //                             Bundle savedInstanceState) {
@@ -60,22 +105,22 @@ public class MeetingsMapFragment extends Fragment implements GoogleMap.OnInfoWin
 //
 //    }
 
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        map = googleMap;
-        isMapReady=true;
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(31.77009916536245, 34.62246552296086), 14));
-        //enableMyLocation();
-        refreshMarkers();
-        googleMap.setOnInfoWindowClickListener(this);
-        // info window.
-        //map.setInfoWindowAdapter(new MainActivity.CustomInfoWindowAdapter());
-
-//        internal val DEFAULT_TLV_LATLNG: LatLng = LatLng(32.09040223978312, 34.782786585677016)azrieli
-        //internal val DEFAULT_CENTER_LATLNG: LatLng = LatLng(31.298816, 34.880428)7.5zoom
-
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(map.getCameraPosition().target, 15));
-    }
+//    @Override
+//    public void onMapReady(GoogleMap googleMap) {
+//        map = googleMap;
+//        isMapReady=true;
+//        map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(31.77009916536245, 34.62246552296086), 14));
+//        //enableMyLocation();
+//        refreshMarkers();
+//        googleMap.setOnInfoWindowClickListener(this);
+//        // info window.
+//        //map.setInfoWindowAdapter(new MainActivity.CustomInfoWindowAdapter());
+//
+////        internal val DEFAULT_TLV_LATLNG: LatLng = LatLng(32.09040223978312, 34.782786585677016)azrieli
+//        //internal val DEFAULT_CENTER_LATLNG: LatLng = LatLng(31.298816, 34.880428)7.5zoom
+//
+//        map.moveCamera(CameraUpdateFactory.newLatLngZoom(map.getCameraPosition().target, 15));
+//    }
     @SuppressLint("MissingPermission")//Permission check invoked at MainActivity
     private void enableMyLocation() {
         // [START maps_check_location_permission]
@@ -146,7 +191,7 @@ public class MeetingsMapFragment extends Fragment implements GoogleMap.OnInfoWin
         if (map != null && mapFragmentMeetings != null) {
             for (Meeting meeting :  mapFragmentMeetings) {
                 LatLng latLng = meeting.getMeetingLocation();
-                createMarker(meeting,100,  R.drawable.icons8_dog_park_50 , latLng);
+                createMarker(meeting,100,  R.drawable.icons8_dog_walking_50 , latLng);
             }
 
         }

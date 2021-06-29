@@ -1,33 +1,34 @@
 {
   "project_info": {
-    "project_number": "769131006897",
-    "project_id": "meet-my-pets",
-    "storage_bucket": "meet-my-pets.appspot.com"
+    "project_number": "943399323314",
+    "firebase_url": "https://meetmypet-317719-default-rtdb.firebaseio.com",
+    "project_id": "meetmypet-317719",
+    "storage_bucket": "meetmypet-317719.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:769131006897:android:e7c93b2c6997cad0b24b90",
+        "mobilesdk_app_id": "1:943399323314:android:d9b214ab243e7bffb9ebab",
         "android_client_info": {
           "package_name": "com.example.meetmypets"
         }
       },
       "oauth_client": [
         {
-          "client_id": "769131006897-00tp65rs5r927mss6u7k5io1sm9o707k.apps.googleusercontent.com",
+          "client_id": "943399323314-epp6jd78qdo3jo9ek45spih6j2ena76o.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCqwBDIgYd42oXxjuqXEHX7408cwn2Qfxg"
+          "current_key": "AIzaSyBJzH8n17DpM5tLk0ntbzGEf7WypuB5dGM"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "769131006897-00tp65rs5r927mss6u7k5io1sm9o707k.apps.googleusercontent.com",
+              "client_id": "943399323314-epp6jd78qdo3jo9ek45spih6j2ena76o.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
