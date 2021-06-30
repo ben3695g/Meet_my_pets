@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.example.meetmypets.R;
+import com.example.meetmypets.activities.MainActivity;
 
 public class SettingsFragment extends Fragment {
 
@@ -25,6 +26,9 @@ public class SettingsFragment extends Fragment {
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+//                LoginFragment loginFragment =new LoginFragment();
+//                MainActivity mainActivity = (MainActivity)getActivity();
+//                mainActivity.navigateToPageFragment(new LoginFragment(LoginFragment));
                 getParentFragmentManager().beginTransaction().replace(R.id.flFragment,
                         new LoginFragment(null), "LoginFragment")
                         .addToBackStack("LoginFragment").commit();

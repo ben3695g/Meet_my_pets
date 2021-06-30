@@ -18,6 +18,7 @@ import androidx.fragment.app.Fragment;
 import com.example.meetmypets.R;
 import com.example.meetmypets.activities.MainActivity;
 import com.example.meetmypets.adapter.MeetingsAdapter;
+import com.example.meetmypets.model.MeetingsDataLayer;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -37,6 +38,7 @@ import java.util.Map;
 public class NewMeetingFragment extends Fragment implements GoogleMap.OnMapClickListener,GoogleMap.OnMarkerClickListener {
     private DatabaseReference meetingRef;
     private MeetingsAdapter recyclerViewAdapter;
+    private MeetingsDataLayer dataLayer;
     private FirebaseAuth mAuth;
     private MeetingsMapFragment newMeetingMapFragment;
     private LatLng locationLatlng;
@@ -44,10 +46,10 @@ public class NewMeetingFragment extends Fragment implements GoogleMap.OnMapClick
     private TextView locationLatLng;
     private EditText meetingName, meetingDescription;
 
-    public NewMeetingFragment(MeetingsAdapter recyclerViewAdapter) {
+    public NewMeetingFragment(MeetingsAdapter recyclerViewAdapter, MeetingsDataLayer dataLayer) {
         this.recyclerViewAdapter = recyclerViewAdapter;
         this.meetingRef = FirebaseDatabase.getInstance().getReference().child("Allmeetings");
-
+        this.dataLayer = dataLayer;
     }
 
     @Override
@@ -106,15 +108,25 @@ public class NewMeetingFragment extends Fragment implements GoogleMap.OnMapClick
                     LatLng l = locationLatlng;
                     mAuth = FirebaseAuth.getInstance();
                     username=  mAuth.getCurrentUser().getDisplayName();
+                    Thread splash_screen = new Thread() {
+                        public void run() {
+                            try {
+                                sleep(1000);//todo explain to eran why
+                                dataLayer.createNewMeeting(name, description, locationLatlng, mAuth.getUid(), username);
+                            } catch(Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    };
 
-                    String id = meetingRef.push().getKey();
-                    Map<String, Object> childUpdates = new HashMap<>();
-                    childUpdates.put(id+"/meetingName", name);
-                    childUpdates.put(id+"/meetingDescription", description);
-                    childUpdates.put(id+"/meetingLatLng", locationLatlng);
-                    childUpdates.put(id+"/meetingCreationTime", ServerValue.TIMESTAMP);
-                    childUpdates.put(id+"/meetingUsers/"+mAuth.getUid()+"/name", username);
-                    meetingRef.updateChildren(childUpdates);
+//                    String id = meetingRef.push().getKey();
+//                    Map<String, Object> childUpdates = new HashMap<>();
+//                    childUpdates.put(id+"/meetingName", name);
+//                    childUpdates.put(id+"/meetingDescription", description);
+//                    childUpdates.put(id+"/meetingLatLng", locationLatlng);
+//                    childUpdates.put(id+"/meetingCreationTime", ServerValue.TIMESTAMP);
+//                    childUpdates.put(id+"/meetingUsers/"+mAuth.getUid()+"/name", username);
+//                    meetingRef.updateChildren(childUpdates);
 
                     moveToMain();
                 }

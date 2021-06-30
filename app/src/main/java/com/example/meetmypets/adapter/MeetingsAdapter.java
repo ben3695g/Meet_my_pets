@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -25,7 +26,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 public class MeetingsAdapter extends RecyclerView.Adapter<MeetingsAdapter.MeetingViewHolder> {
-    private List<Meeting> chosenMeetings = new ArrayList<>();
+    private List<Meeting> meetings = new ArrayList<>();
     private MyMeetingListener listener;
 
     public interface MyMeetingListener {
@@ -46,10 +47,8 @@ public class MeetingsAdapter extends RecyclerView.Adapter<MeetingsAdapter.Meetin
     public class MeetingViewHolder extends RecyclerView.ViewHolder {
         RelativeLayout relativeLayout;
         TextView meetingName;
-        //Location meetingLocation;
         TextView meetingUsers;
         TextView meetingDistance;
-       // ImageView meetingImage;
 
         public MeetingViewHolder(View view) {
             super(view);
@@ -69,27 +68,38 @@ public class MeetingsAdapter extends RecyclerView.Adapter<MeetingsAdapter.Meetin
         }
     }
 
-    private void getData() {
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
-        reference.child("meets")
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()) {
-                            for (final DataSnapshot object : dataSnapshot.getChildren()) {
-                                Meeting meeting = object.getValue(Meeting.class);
-                                chosenMeetings.add(meeting);
-                            }
-                            Collections.reverse(chosenMeetings);
-                            notifyDataSetChanged();
-                        }
-                    }
+    public Meeting getMeeting(int position){
+        return meetings.get(position);
+    }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                        Log.w("firebase", "onCancelled", databaseError.toException());
-                    }
-                });
+    public List<Meeting> updateDistance(LatLng userLocation){
+
+        for (Meeting meeting : meetings){
+            LatLng loc = meeting.getMeetingLocation();
+            if (loc != null){
+                meeting.setDistance(calculateDistance(userLocation.latitude, userLocation.longitude, loc.latitude, loc.longitude));
+            }
+        }
+
+        notifyDataSetChanged();
+        return meetings;
+    }
+
+    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        double theta = lon1 - lon2;
+        double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
+        dist = Math.acos(dist);
+        dist = rad2deg(dist);
+        dist = dist * 60 * 1.1515 * 1.609344; // in Kilometers
+        return dist;
+    }
+
+    private double deg2rad(double deg) {
+        return (deg * Math.PI / 180.0);
+    }
+
+    private double rad2deg(double rad) {
+        return (rad * 180.0 / Math.PI);
     }
 
     @NonNull
@@ -102,53 +112,52 @@ public class MeetingsAdapter extends RecyclerView.Adapter<MeetingsAdapter.Meetin
 
     @Override
     public void onBindViewHolder(@NonNull MeetingViewHolder holder, int position) {
-        Meeting meeting = chosenMeetings.get(position);
+        Meeting meeting = meetings.get(position);
         holder.meetingName.setText(meeting.getMeetingName());
         holder.meetingUsers.setText("users:" + meeting.getSubscribedUserIds().size());
-      //  holder.meetingImage.setImageBitmap(meeting.meetingImage);//holder.meetingImage.setImageResource(meeting.get
-        holder.meetingDistance.setText(meeting.getDistance() + "m");
+        double distance = meeting.getDistance();
+        if (distance> 0.001)
+        {
+            holder.meetingDistance.setText(meeting.getFormattedDistance());
+        }
     }
 
     @Override
     public int getItemCount() {
-        return chosenMeetings != null ? chosenMeetings.size() : 0;
+        return meetings != null ? meetings.size() : 0;
     }
 
     public void orderByName(boolean toggleDirectionName){
         if(toggleDirectionName) {
-            if (chosenMeetings == null) return;
-            this.chosenMeetings = chosenMeetings.stream().sorted((x, y) -> x.getMeetingName().compareTo(y.getMeetingName())).collect(Collectors.toList());
+            if (meetings == null) return;
+            this.meetings = meetings.stream().sorted((x, y) -> x.getMeetingName().compareTo(y.getMeetingName())).collect(Collectors.toList());
         }else{
-            this.chosenMeetings = chosenMeetings.stream().sorted((y, x) -> x.getMeetingName().compareTo(y.getMeetingName())).collect(Collectors.toList());
+            this.meetings = meetings.stream().sorted((y, x) -> x.getMeetingName().compareTo(y.getMeetingName())).collect(Collectors.toList());
         }
         notifyDataSetChanged();
     }
 
     public void orderByDistance(boolean toggleDirectionDistance){
         if(toggleDirectionDistance){
-        if (chosenMeetings == null) return;
-        this.chosenMeetings = chosenMeetings.stream().sorted((x, y)-> Integer.compare(x.getDistance(),y.getDistance())).collect(Collectors.toList());
+        if (meetings == null) return;
+            this.meetings = meetings.stream().sorted((x, y)-> Double.compare(x.getDistance(),y.getDistance())).collect(Collectors.toList());
         }else{
-            this.chosenMeetings = chosenMeetings.stream().sorted((y, x)-> Integer.compare(x.getDistance(),y.getDistance())).collect(Collectors.toList());
+            this.meetings = meetings.stream().sorted((y, x)-> Double.compare(x.getDistance(),y.getDistance())).collect(Collectors.toList());
         }
         notifyDataSetChanged();
     }
     public void orderByNumberOfUsers(boolean toggleDirectionUsers){
         if(toggleDirectionUsers) {
-            if (chosenMeetings == null) return;
-            this.chosenMeetings = chosenMeetings.stream().sorted((x, y)-> Integer.compare(x.getSubscribedUserIds().size(),y.getSubscribedUserIds().size())).collect(Collectors.toList());
+            if (meetings == null) return;
+            this.meetings = meetings.stream().sorted((x, y)-> Integer.compare(x.getSubscribedUserIds().size(),y.getSubscribedUserIds().size())).collect(Collectors.toList());
         }else{
-            this.chosenMeetings = chosenMeetings.stream().sorted((y, x)-> Integer.compare(x.getSubscribedUserIds().size(),y.getSubscribedUserIds().size())).collect(Collectors.toList());
+            this.meetings = meetings.stream().sorted((y, x)-> Integer.compare(x.getSubscribedUserIds().size(),y.getSubscribedUserIds().size())).collect(Collectors.toList());
         }
         notifyDataSetChanged();
     }
 
-    public void readData() {
-        getData();
-    }
-
     public void refreshMeetingsList(List<Meeting> meetings){
-        chosenMeetings =meetings;
+        this.meetings =meetings;
         notifyDataSetChanged();
     }
 }

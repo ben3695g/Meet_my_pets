@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -48,9 +49,13 @@ public class MeetingsMapFragment extends Fragment implements GoogleMap.OnInfoWin
     private GoogleMap map;
     private MapView mMapView;
     private SupportMapFragment mapFragment;
-    private boolean isMapReady,isMapLoaded =false, isCameraMoved =false;
+    private boolean isMapReady,isMapLoaded =false, isCameraMoved =false,isLocationEnabled;
     private FusedLocationProviderClient fusedLocationClient;
     private Location userLocation;
+
+    public void setLocationEnabled(boolean locationEnabled) {
+        isLocationEnabled = locationEnabled;
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -73,58 +78,41 @@ public class MeetingsMapFragment extends Fragment implements GoogleMap.OnInfoWin
             e.printStackTrace();
         }
 
+        GoogleMap.OnInfoWindowClickListener onInfoWindowClickListener = this;
         mMapView.getMapAsync(new OnMapReadyCallback() {
             @Override
             public void onMapReady(GoogleMap mMap) {
                 map = mMap;
-
+                isMapReady= true;
                 // For showing a move to my location button
                 //map.set MyLocationEnabled(true);
 
                 // For dropping a marker at a point on the Map
 //                refreshMarkers();
-//                map.setOnInfoWindowClickListener(this);
-                LatLng sydney = new LatLng(31.77009916536245, 34.62246552296086);
-                map.addMarker(new MarkerOptions().position(sydney).title("Marker Title").snippet("Marker Description"));
+                map.setInfoWindowAdapter(new CustomInfoWindowAdapter());
+                map.setOnInfoWindowClickListener(onInfoWindowClickListener);
+               // LatLng ashdod = new LatLng(31.77009916536245, 34.62246552296086);
+                //change after ------------------
+                LatLng israel = new LatLng(31.298816, 34.880428);
+                float zoom = 7.5f;
+                CameraPosition cameraPositionafter = new CameraPosition.Builder().target(israel).zoom(zoom).build();
+                map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPositionafter));
+                refreshMarkers();
+                //-------------------------------
 
-                // For zooming automatically to the location of the marker
-                CameraPosition cameraPosition = new CameraPosition.Builder().target(sydney).zoom(14).build();
-                map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
+
+               // CameraPosition cameraPosition = new CameraPosition.Builder().target(ashdod).zoom(14).build();
+               // map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                isMapReady= true;
             }
         });
         return rootView;
     }
 
-    public void setMapFragmentMeetings(List<Meeting> mapFragmentMeetings) {
-        this.mapFragmentMeetings = mapFragmentMeetings;
-    }
-//    @Override
-//    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-//                             Bundle savedInstanceState) {
-//        // Inflate the layout for this fragment
-//        return inflater.inflate(mapFragment., container, false);
-//
-//    }
 
-//    @Override
-//    public void onMapReady(GoogleMap googleMap) {
-//        map = googleMap;
-//        isMapReady=true;
-//        map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(31.77009916536245, 34.62246552296086), 14));
-//        //enableMyLocation();
-//        refreshMarkers();
-//        googleMap.setOnInfoWindowClickListener(this);
-//        // info window.
-//        //map.setInfoWindowAdapter(new MainActivity.CustomInfoWindowAdapter());
-//
-////        internal val DEFAULT_TLV_LATLNG: LatLng = LatLng(32.09040223978312, 34.782786585677016)azrieli
-//        //internal val DEFAULT_CENTER_LATLNG: LatLng = LatLng(31.298816, 34.880428)7.5zoom
-//
-//        map.moveCamera(CameraUpdateFactory.newLatLngZoom(map.getCameraPosition().target, 15));
-//    }
     @SuppressLint("MissingPermission")//Permission check invoked at MainActivity
     private void enableMyLocation() {
-        // [START maps_check_location_permission]
 
         if (map != null) {
             map.setMyLocationEnabled(true);
@@ -133,55 +121,9 @@ public class MeetingsMapFragment extends Fragment implements GoogleMap.OnInfoWin
         // [END maps_check_location_permission]
     }
 
-    @SuppressLint("MissingPermission")//Permission check invoked at MainActivity
-    private void hookupLocation() {
-        LocationRequest locationRequest;
-        locationRequest = LocationRequest.create();
-        locationRequest.setFastestInterval(5000);
-        locationRequest.setInterval(10000);
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-        LocationCallback locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                if (locationResult == null) {
-                    return;
-                }
-                Location chosenLocation = null;
-                for (Location location : locationResult.getLocations()) {
-                    if (chosenLocation == null || chosenLocation.getAccuracy() > location.getAccuracy()) {
-                        chosenLocation = location;
-                    }
-                }
-
-                applyCurrentLocation(chosenLocation);
-                userLocation = chosenLocation;
-
-            }
-        };
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(getContext());
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
-        setLastUserLocation();
-
-    }
-    @SuppressLint("MissingPermission")//Permission check invoked at MainActivity
-
-    private void setLastUserLocation() {
-
-        fusedLocationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
-            @Override
-            public void onSuccess(Location loc) {
-                userLocation = loc;
-                // Got last known location. In some rare situations this can be null.
-                applyCurrentLocation(loc);
-
-            }
-        });
-    }
-    public void applyCurrentLocation(Location location) {
-        if (location != null && isMapReady) {
-            LatLng point = new LatLng(location.getLatitude(), location.getLongitude());
-
+    public void applyCurrentLocation(LatLng point) {
+        if (point != null && isMapReady) {
             if (!isCameraMoved) {
                 map.moveCamera(CameraUpdateFactory.newLatLngZoom(point, 15));
                 isCameraMoved = true;
@@ -202,8 +144,7 @@ public class MeetingsMapFragment extends Fragment implements GoogleMap.OnInfoWin
         int height = iconSize;
         int width = iconSize;
 
-//        BitmapDrawable bitmapdraw = (BitmapDrawable)getResources().getDrawable(iconId);
-//        Drawable chipIcon= ResourcesCompat.getDrawable(this.getResources(),iconId,null);
+
         BitmapDrawable bitmapdraw = (BitmapDrawable)getResources().getDrawable(iconId,null);
 
         Bitmap b = bitmapdraw.getBitmap();
@@ -213,21 +154,22 @@ public class MeetingsMapFragment extends Fragment implements GoogleMap.OnInfoWin
         return BitmapDescriptorFactory.fromBitmap(smallMarker);
     }
 
-    public void updateMeetingList(List<Meeting> mapFragmentMeetings){
-        // tbd
+    public void refreshMeetingList(List<Meeting> mapFragmentMeetings){
+        this.mapFragmentMeetings = mapFragmentMeetings;
+        refreshMarkers();
     }
 
     private void createMarker(Meeting meeting, int iconSize,int iconId,LatLng point) {
         BitmapDescriptor icon = createIcon(iconId, iconSize);
         Marker marker = map.addMarker(new MarkerOptions().position(point).title( " meeting name: "+meeting.getMeetingName())
-                .snippet("users: "+meeting.getSubscribedUserIds().size()+"\n"+"distance:"+meeting.getDistance()).icon(icon));
+                .snippet("users: "+meeting.getSubscribedUserIds().size()+"\n"+"distance:"+meeting.getFormattedDistance()).icon(icon));
         marker.showInfoWindow();
     }
 
     @Override
     public void onInfoWindowClick(Marker marker) {
-//            Toast.makeText(this, marker.getTitle() +" Info window clicked",
-//                    Toast.LENGTH_SHORT).show();
+           Toast.makeText(getContext(), marker.getTitle() +" Info window clicked",
+                   Toast.LENGTH_SHORT).show();
     }
 
     class CustomInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {

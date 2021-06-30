@@ -13,7 +13,6 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Looper;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
@@ -23,16 +22,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.meetmypets.adapter.MeetingsAdapter;
-import com.example.meetmypets.fragments.MeetingsFragment;
 import com.example.meetmypets.model.Meeting;
 import com.example.meetmypets.R;
 import com.example.meetmypets.fragments.MeetingsMapFragment;
 import com.example.meetmypets.fragments.MeetingListFragment;
 import com.example.meetmypets.fragments.SettingsFragment;
 import com.example.meetmypets.fragments.Splash;
-import com.example.meetmypets.model.MeetingToDelete;
 import com.example.meetmypets.model.MeetingsDataLayer;
-import com.example.meetmypets.model.Message;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -48,23 +44,20 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseOptions;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Logger;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import me.ibrahimsn.lib.SmoothBottomBar;
 
-public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback,GoogleMap.OnInfoWindowClickListener,  OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
 
     private MeetingListFragment listFragment;
     private MeetingsMapFragment mapFragment2;
     private SettingsFragment settingFragment;
     private SupportMapFragment mapFragment;
+    private MeetingsAdapter meetingsAdapter;
     private SmoothBottomBar smoothBottomBar;
     private GoogleMap map;
     final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -74,6 +67,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private  List<Meeting> mapFragmentMeetings;
     private int previousCase = 0;
 
+
+    interface UserLocationListener{
+        void onUserLocationFound(LatLng location);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,15 +80,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         int resultFineLocation = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
         int resultCoarseLocation = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
         if (resultFineLocation != PackageManager.PERMISSION_GRANTED && resultCoarseLocation != PackageManager.PERMISSION_GRANTED) {
-            //todo if permission is denied
-            //Dexter d;
             ActivityCompat.requestPermissions(this,
                     new String[] { Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION },
                     MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
 
         mapFragment2 = new MeetingsMapFragment();
-        MeetingsAdapter meetingsAdapter = new MeetingsAdapter();
+        meetingsAdapter = new MeetingsAdapter();
         MeetingsDataLayer dataLayer = new MeetingsDataLayer();
 
         dataLayer.registerForData(new MeetingsDataLayer.MeetingsDataListener() {
@@ -98,14 +94,21 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             public void onMeetingDataChanged(List<Meeting> meetings) {
                 runOnUiThread(() -> {
                     meetingsAdapter.refreshMeetingsList(meetings);
-                    mapFragment2.updateMeetingList(meetings);
+                    mapFragment2.refreshMeetingList(meetings);
                 });
+            }
+        });
+
+        hookupLocation(new UserLocationListener() {
+            @Override
+            public void onUserLocationFound(LatLng location) {
+                ApplyLocation(location);
             }
         });
 
         smoothBottomBar = findViewById(R.id.bottomBar);
         smoothBottomBar.setVisibility(View.INVISIBLE);
-        listFragment = new MeetingListFragment(meetingsAdapter);
+        listFragment = new MeetingListFragment(meetingsAdapter, dataLayer);
 
         settingFragment = new SettingsFragment();
 
@@ -122,10 +125,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 case 1:
                     isCameraMoved =false;
                     switchToTabFragment(mapFragment2);
-                    //mapFragment.getMapAsync(this);
+
                     if (!isMapLoaded){
 
-//                        hookupLocation();
+
                         isMapLoaded =true;
                     }
                     break;
@@ -138,54 +141,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     }
 
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        map = googleMap;
-        isMapReady=true;
-        enableMyLocation();
-        refreshMarkers();
-        googleMap.setOnInfoWindowClickListener(this);
-        // info window.
-        map.setInfoWindowAdapter(new CustomInfoWindowAdapter());
-//        internal val DEFAULT_TLV_LATLNG: LatLng = LatLng(32.09040223978312, 34.782786585677016)azrieli
-        //internal val DEFAULT_CENTER_LATLNG: LatLng = LatLng(31.298816, 34.880428)7.5zoom
-
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(map.getCameraPosition().target, 15));
-    }
-    @SuppressLint("MissingPermission")//Permission check invoked at MainActivity
-    private void enableMyLocation() {
-        // [START maps_check_location_permission]
-
-        if (map != null) {
-            map.setMyLocationEnabled(true);
-        }
-
-        // [END maps_check_location_permission]
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    //   showMap();
-                } else {
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-
-                }
-                return;
-            }
-            // other 'case' lines to check for other
-            // permissions this app might request
-        }
+    private void ApplyLocation(LatLng location){
+        List<Meeting> updatedMeetings = meetingsAdapter.updateDistance(location);
+        mapFragment2.refreshMeetingList(updatedMeetings);
+        mapFragment2.applyCurrentLocation(location);
     }
 
     @SuppressLint("MissingPermission")//Permission check invoked at MainActivity
-    private void hookupLocation() {
+    public void hookupLocation(UserLocationListener userLocationListener) {
         LocationRequest locationRequest;
         locationRequest = LocationRequest.create();
         locationRequest.setFastestInterval(5000);
@@ -204,131 +167,51 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         chosenLocation = location;
                     }
                 }
-
-                applyCurrentLocation(chosenLocation);
                 userLocation = chosenLocation;
 
+                if (userLocation!= null){
+                    try {
+                        LatLng point = new LatLng(userLocation.getLatitude(), userLocation.getLongitude());
+                        userLocationListener.onUserLocationFound(point);
+                    }
+                    catch (Exception e){
+                        // ignoring exception for off screen map scenarios
+                    }
+                }
             }
         };
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
-        setLastUserLocation();
-
-    }
-    @SuppressLint("MissingPermission")//Permission check invoked at MainActivity
-
-    private void setLastUserLocation() {
 
         fusedLocationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
             @Override
             public void onSuccess(Location loc) {
                 userLocation = loc;
-                // Got last known location. In some rare situations this can be null.
-                applyCurrentLocation(loc);
-
+                LatLng point = new LatLng(userLocation.getLatitude(), userLocation.getLongitude());
+                userLocationListener.onUserLocationFound(point);
             }
         });
     }
-    public void applyCurrentLocation(Location location) {
-        if (location != null && isMapReady) {
-            LatLng point = new LatLng(location.getLatitude(), location.getLongitude());
-
-            if (!isCameraMoved) {
-                map.moveCamera(CameraUpdateFactory.newLatLngZoom(point, 15));
-                isCameraMoved = true;
-            }
-        }
-    }
-    private void refreshMarkers() {
-        if (map != null && mapFragmentMeetings != null) {
-            for (Meeting meeting :  mapFragmentMeetings) {
-                LatLng latLng = meeting.getMeetingLocation();
-                createMarker(meeting,100,  R.drawable.icons8_dog_walking_50, latLng);
-            }
-
-        }
-    }
-
-    private BitmapDescriptor createIcon(int iconId, int iconSize) {
-        int height = iconSize;
-        int width = iconSize;
-
-//        BitmapDrawable bitmapdraw = (BitmapDrawable)getResources().getDrawable(iconId);
-//        Drawable chipIcon= ResourcesCompat.getDrawable(this.getResources(),iconId,null);
-        BitmapDrawable bitmapdraw = (BitmapDrawable)getResources().getDrawable(iconId,null);
-
-        Bitmap b = bitmapdraw.getBitmap();
-
-        Bitmap smallMarker = Bitmap.createScaledBitmap(b, width, height, false);
-
-        return BitmapDescriptorFactory.fromBitmap(smallMarker);
-    }
-
-
-    private void createMarker(Meeting meeting, int iconSize,int iconId,LatLng point) {
-        BitmapDescriptor icon = createIcon(iconId, iconSize);
-        Marker marker = map.addMarker(new MarkerOptions().position(point).title( " meeting name: "+meeting.getMeetingName())
-                .snippet("users: "+meeting.getSubscribedUserIds().size()+"\n"+"distance:"+meeting.getDistance()).icon(icon));
-        marker.showInfoWindow();
-    }
 
     @Override
-    public void onInfoWindowClick(Marker marker) {
-        Toast.makeText(this, marker.getTitle() +" Info window clicked",
-                Toast.LENGTH_SHORT).show();
-    }
-
-
-    class CustomInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
-
-        // These are both viewgroups containing an ImageView with id "badge" and two TextViews with id
-        // "title" and "snippet".
-        private final View mWindow;
-
-        private final View mContents;
-
-        CustomInfoWindowAdapter() {
-            mWindow = getLayoutInflater().inflate(R.layout.custom_info_window, null);
-            mContents = getLayoutInflater().inflate(R.layout.custom_info_contents, null);
-        }
-        private RadioGroup mOptions;
-        @Override
-        public View getInfoWindow(Marker marker) {
-            render(marker, mWindow);
-            return mWindow;
-        }
-
-        @Override
-        public View getInfoContents(Marker marker) {
-            if (mOptions.getCheckedRadioButtonId() != R.id.customInfoContents) {
-                // This means that the default info contents will be used.
-                return null;
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    //   showMap();
+                } else {
+                    // permission denied
+                    Toast.makeText(this, "Location access is denied - some functionality will not be available",
+                            Toast.LENGTH_LONG).show();
+                    ApplyLocation(new LatLng(32.09040223978312, 34.782786585677016));
+                }
+                return;
             }
-            render(marker, mContents);
-            return mContents;
-        }
-
-        private void render(Marker marker, View view) {
-            String title = marker.getTitle();
-            TextView titleUi = ((TextView) view.findViewById(R.id.title));
-            if (title != null) {
-                // Spannable string allows us to edit the formatting of the text.
-                SpannableString titleText = new SpannableString(title);
-                titleText.setSpan(new ForegroundColorSpan(Color.BLACK), 0, titleText.length(), 0);
-                titleUi.setText(titleText);
-            } else {
-                titleUi.setText("");
-            }
-
-            String snippet = marker.getSnippet();
-            TextView snippetUi = ((TextView) view.findViewById(R.id.snippet));
-            if (snippet != null && snippet.length() > 12) {
-                SpannableString snippetText = new SpannableString(snippet);
-                snippetText.setSpan(new ForegroundColorSpan(Color.BLACK), 0, snippet.length(), 0);
-                snippetUi.setText(snippetText);
-            } else {
-                snippetUi.setText("");
-            }
+            // other 'case' lines to check for other
+            // permissions this app might request
         }
     }
 

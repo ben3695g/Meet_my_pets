@@ -15,17 +15,20 @@ public class Meeting {
     List<String> usersNoNotifications;
     Bitmap meetingImage;
     LatLng meetingLocation;
-    int distance;
+    double distance;
     String adminId;
     Boolean enablePassword;
     String meetingPassword;
+    List<String> subscribedUsers;
 
-    public Meeting(String meetingName, String meetingDescription, List<String> subscribedUserIds, int distance, LatLng meetingLocation) {
+    public Meeting(String meetingId, String meetingName, String meetingDescription, List<String> subscribedUserIds, List<String> subscribedUsers, double distance, LatLng meetingLocation) {
+        this.meetingId = meetingId;
         this.meetingName = meetingName;
         this.subscribedUserIds = subscribedUserIds;
         this.meetingLocation = meetingLocation;
         this.distance = distance;
         this.meetingDescription=meetingDescription;
+        this.subscribedUsers = subscribedUsers;
     }
 
 //    public Meeting(String meetingId, String meetingName, String meetingDescription, List<String> subscribedUserIds,
@@ -60,6 +63,10 @@ public class Meeting {
         return subscribedUserIds;
     }
 
+    public  List<String> getSubscribedUsers() {
+        return subscribedUsers;
+    }
+
     public List<String> getUsersNoNotifications() {
         return usersNoNotifications;
     }
@@ -76,11 +83,15 @@ public class Meeting {
         return meetingPassword;
     }
 
-    public int getDistance() {
+    public double getDistance() {
         return distance;
     }
 
-    public void setDistance(int distance) {
+    public String getFormattedDistance(){
+        return String.format("%.2f", getDistance()) + " km";
+    }
+
+    public void setDistance(double distance) {
         this.distance = distance;
     }
 

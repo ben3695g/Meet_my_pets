@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.example.meetmypets.R;
 import com.example.meetmypets.activities.MainActivity;
@@ -125,7 +126,6 @@ public class LoginFragment extends Fragment {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString();
         sp.edit().putString("email", email).putString("password",password).apply();
-
         MainActivity mainActivity = (MainActivity)getActivity();
         mainActivity.navigateToPageFragment(new RegisterFragment(fragmentToGo));
     }
